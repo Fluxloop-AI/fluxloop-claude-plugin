@@ -23,10 +23,13 @@ fluxloop bundles list --scenario-id <id>
       │   ├─ Use existing → bundle publish (3 commands)
       │   └─ Create new → full generation (5 commands)
       │
-      └─ No input set → full generation
-          fluxloop personas suggest --scenario-id <id>
-          fluxloop inputs synthesize --scenario-id <id> --total-count N
-          fluxloop bundles publish --scenario-id <id> --input-set-id <id>
+      └─ No input set → full generation (각 단계 완료 후 결과 출력 필수)
+          1. fluxloop personas suggest --scenario-id <id>
+             → ✅ Personas → N개 생성됨 + 이름 목록
+          2. fluxloop inputs synthesize --scenario-id <id> --total-count N
+             → ✅ Input Set → {id} (N개 입력) 🔗 URL + 내용 요약
+          3. fluxloop bundles publish --scenario-id <id> --input-set-id <id>
+             → ✅ Bundle → v1 ({id}) 🔗 URL
 ```
 
 ## UUID Validation (mandatory)
@@ -59,8 +62,11 @@ prompt-compare only needs a small number of inputs, so it follows a simplified f
 ```
 bundles list → exists → select
              → none → inputs list → exists → select and publish
-                                  → none → small-scale generation:
-                                    fluxloop personas suggest --scenario-id <id>
-                                    fluxloop inputs synthesize --scenario-id <id> --total-count 2
-                                    fluxloop bundles publish --scenario-id <id> --input-set-id <id>
+                                  → none → small-scale generation (각 단계 결과 출력 필수):
+                                    1. fluxloop personas suggest --scenario-id <id>
+                                       → ✅ Personas → N개 생성됨 + 이름 목록
+                                    2. fluxloop inputs synthesize --scenario-id <id> --total-count 2
+                                       → ✅ Input Set → {id} (N개 입력) 🔗 URL + 내용 요약
+                                    3. fluxloop bundles publish --scenario-id <id> --input-set-id <id>
+                                       → ✅ Bundle → v1 ({id}) 🔗 URL
 ```

@@ -83,14 +83,33 @@ Run `fluxloop bundles list --scenario-id <id>` and follow the decision tree:
 
 When showing multiple resources, include: **version/name, tag/description, count, created date**
 
-**Full generation path:**
+**Full generation path (각 단계 완료 후 반드시 결과를 사용자에게 출력):**
 
-```bash
-fluxloop personas suggest --scenario-id <id>
-fluxloop inputs synthesize --scenario-id <id>    # --timeout 300 for large, --total-count 2 for quick
-# (Interactive only) fluxloop inputs qc → fluxloop inputs refine
-fluxloop bundles publish --scenario-id <id> --input-set-id <id>
-```
+1. Persona 생성:
+   ```bash
+   fluxloop personas suggest --scenario-id <id>
+   ```
+   > **필수 출력**: `✅ Personas → N개 생성됨` + 생성된 페르소나 이름 목록 표시
+
+2. Input 생성:
+   ```bash
+   fluxloop inputs synthesize --scenario-id <id>    # --timeout 300 for large, --total-count 2 for quick
+   ```
+   > **필수 출력**: CLI 출력에서 `input_set_id`와 입력 개수를 추출하여:
+   > `✅ Input Set → {input_set_id} ({N}개 입력) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/inputs/{input_set_id}?project={project_id}`
+   > + 생성된 입력 내용 요약 (어떤 테스트 케이스가 만들어졌는지 1-2줄)
+
+3. (Interactive only) QC & Refine:
+   ```bash
+   fluxloop inputs qc --scenario-id <id> --input-set-id <id>
+   fluxloop inputs refine --scenario-id <id> --input-set-id <id>
+   ```
+
+4. Bundle 발행:
+   ```bash
+   fluxloop bundles publish --scenario-id <id> --input-set-id <id>
+   ```
+   > **필수 출력**: `✅ Bundle → v{N} ({bundle_version_id}) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/bundles/{bundle_version_id}?project={project_id}`
 
 > ⚠️ Do NOT run `fluxloop test` here — always proceed to Step 3 first. (E-M2 fix)
 
