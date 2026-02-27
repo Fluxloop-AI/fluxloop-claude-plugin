@@ -45,6 +45,14 @@ project_root/
       learnings.md
 ```
 
+## UUID Handling
+
+CLI 테이블 출력은 터미널 폭에 따라 UUID가 잘릴 수 있다. **잘린 ID로 명령을 실행하면 500 에러가 발생한다.**
+
+- ID를 CLI 출력에서 추출한 후 반드시 **36자 검증**: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+- 36자 미만이면 해당 명령의 **raw 출력을 다시 확인**하거나 관련 list 명령을 재실행하여 전체 ID를 확보
+- 잘린 ID(36자 미만)로는 **절대 다음 명령을 실행하지 않는다**
+
 ## Setup
 
 | Command | Description |

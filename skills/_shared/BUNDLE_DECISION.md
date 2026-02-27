@@ -29,6 +29,14 @@ fluxloop bundles list --scenario-id <id>
           fluxloop bundles publish --scenario-id <id> --input-set-id <id>
 ```
 
+## UUID Validation (mandatory)
+
+CLI 테이블 출력에서 ID를 추출할 때, 터미널 폭에 의해 UUID가 잘릴 수 있다.
+
+**모든 ID를 사용하기 전에 반드시 36자(`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) 검증:**
+- 36자 미만 → 잘린 ID. **절대 사용하지 않는다.** list 명령을 재실행하여 전체 ID 확보.
+- `inputs list`, `bundles list` 출력에서 ID가 `...`으로 끝나거나 하이픈 이후 부분이 짧으면 잘린 것이다.
+
 ## Display Format for Multiple Resources
 
 When multiple bundles or input sets exist, show identifying information:
