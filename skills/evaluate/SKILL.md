@@ -88,7 +88,7 @@ fluxloop evaluate --experiment-id <id> --wait --timeout 900 --poll-interval 5
 **Server link**: 🔗 {experiment URL}
 ```
 
-> 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
+> **필수 링크 출력**: 아래 Web Handoff 형식을 반드시 따른다. CLI 출력에서 `experiment_id`와 `project_id`를 추출하여 URL을 구성한다.
 
 **Web Handoff** — output after evaluation:
 

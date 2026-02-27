@@ -23,6 +23,9 @@ Include metadata as an HTML comment at the top of the file:
 ## Stale Detection Criteria
 
 - If `git_commit` differs from the current `git rev-parse --short HEAD`, the profile is considered stale
-- On stale detection: "The profile looks outdated. Would you like to update it?"
+- On stale detection — 사용자에게 **무엇이 왜 오래되었는지** 설명:
+  > "마지막 프로필 스캔 이후 코드가 변경되었습니다 (프로필: {old_commit} → 현재: {new_commit}).
+  > 프로필은 에이전트의 기능·도구·의존성 정보를 담고 있어, 코드가 바뀌면 테스트 정확도에 영향을 줄 수 있습니다.
+  > 업데이트할까요? (Yes/No)"
   - Yes → run the collection procedure above
   - No → continue with the existing profile

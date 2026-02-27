@@ -94,6 +94,8 @@ fluxloop sync pull --bundle-version-id <bundle_version_id>
 
 Ask the user:
 
+> 💡 **Repeats(반복 횟수)**: 동일 입력을 여러 번 실행하여 응답의 일관성(stability)을 측정합니다. 반복이 많을수록 통계적으로 신뢰할 수 있는 비교가 됩니다.
+
 ```
 1. Number of repeats? (default: 5)
 2. Multi-turn? (default: single-turn) → if yes, also confirm max turns
@@ -140,9 +142,8 @@ After completion:
 2. **(Server)**: results stored automatically on server
 3. **(Local)**: record Version A in `.fluxloop/test-memory/prompt-versions.md`:
    - Git ref, experiment ID, key characteristics
-4. Output: `✅ Baseline → exp_<timestamp> (label: "v3", N runs)`
-
-> 📎 Post-Action format: read skills/_shared/POST_ACTIONS.md
+4. Output — **반드시 🔗 링크 포함**:
+   `✅ Baseline → exp_<timestamp> (label: "v3", N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ---
 
@@ -188,9 +189,8 @@ After completion:
 3. **(Local)**: add Version B to `.fluxloop/test-memory/prompt-versions.md`:
    - Git ref, experiment ID, changes summary, git diff summary
 4. **(Local)**: append comparison entry to `.fluxloop/test-memory/results-log.md`
-5. Output: `✅ Variant → exp_<timestamp> (label: "v4", N runs)`
-
-> 📎 Post-Action format: read skills/_shared/POST_ACTIONS.md
+5. Output — **반드시 🔗 링크 포함**:
+   `✅ Variant → exp_<timestamp> (label: "v4", N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ---
 
@@ -239,10 +239,11 @@ After analysis:
 ```
 Choose one:
 1. Additional comparison — update prompt again and compare (-> Phase 4)
-2. View Web details — provide the raw experiment URL so it can be copied directly
-3. Server evaluation — run detailed analysis with `fluxloop evaluate`
-4. Done
+2. Server evaluation — run detailed analysis with `fluxloop evaluate`
+3. Done
 ```
+
+> 💡 실험 URL은 Phase 3, 5의 결과 출력에서 이미 제공됩니다. 다시 확인하려면 위 출력을 참조하세요.
 
 If "Additional comparison": loop back to Phase 4 (same bundle reused).
 If "Server evaluation":

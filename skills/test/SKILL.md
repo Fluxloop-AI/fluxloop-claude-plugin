@@ -64,6 +64,11 @@ Run `fluxloop context show` first:
 
 ### Step 2: Bundle/Input Selection
 
+> 💡 **용어 설명** (세션에서 처음 등장 시 반드시 사용자에게 전달):
+> - **Bundle**: 테스트 입력과 페르소나를 하나로 묶은 스냅샷. 동일 조건으로 반복 테스트할 수 있게 해줍니다.
+> - **Input Set**: AI가 생성한 테스트 입력 데이터 모음. Bundle로 발행해야 테스트에 사용 가능합니다.
+> - **Persona**: 테스트에서 사용할 가상 사용자 유형 (예: "급한 고객", "처음 이용하는 사용자").
+
 > 📎 Bundle selection decision tree: read skills/_shared/BUNDLE_DECISION.md
 
 Run `fluxloop bundles list --scenario-id <id>` and follow the decision tree:
@@ -96,6 +101,7 @@ This step ensures no path skips essential checks. (L-H1 fix)
 1. **Wrapper check**: Verify `.fluxloop/scenarios/<name>/agents/wrapper.py` or `runner.target` in `configs/simulation.yaml`
    - Not configured → "Wrapper setup is needed. See the scenario skill's wrapper guide."
 2. **Turn mode selection**: "Multi-turn? (yes/no), max turns? (default: 8)"
+   > 💡 **Multi-turn이란?** 에이전트와 여러 번 주고받는 대화를 시뮬레이션합니다. Single-turn은 1회 질문-응답만 테스트하고, Multi-turn은 맥락을 유지하며 연속 대화하는 능력을 검증합니다.
    - If `test-strategy.md` has previous settings → suggest as default
 3. **Provider selection** (multi-turn only): "Provider? (openai/anthropic)"
 
@@ -137,7 +143,8 @@ Fields to populate:
 - Insight: (leave empty — evaluate skill fills this)
 - Server link: experiment URL
 
-> 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
+> **필수 링크 출력**: 테스트 완료 후 CLI 출력에서 `experiment_id`를 추출하여 아래 형식으로 반드시 출력:
+> `✅ Test → exp_xxx (N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ### Step 6: Results Review
 
@@ -196,7 +203,7 @@ Test complete. Available next actions:
 4. NEVER run `fluxloop test` as part of bundle selection (E-M2 fix) — always go through Pre-check first
 5. Use `sync pull` + `test` separately — NEVER use `--pull` option
 6. Multi-turn commands must start with `!` prefix
-7. Use explicit IDs (`--bundle-version-id`, `--scenario-id`) — verify full 36-char UUID
+7. Use explicit IDs (`--bundle-version-id`, `--scenario-id`) — **CLI 테이블 출력은 UUID를 잘라서 표시할 수 있으므로, 사용 전 반드시 36자(`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) 검증. 36자 미만이면 list 명령 재실행하여 전체 ID 확보 후 사용.**
 8. Dual Write: server (test results + experiment ID) and local (`results-log.md`) at the same time
 9. Use the template from `test-memory-template/results-log.md` for output format
 10. Append to `results-log.md` (most recent at top) — do NOT overwrite

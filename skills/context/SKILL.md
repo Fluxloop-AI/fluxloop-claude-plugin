@@ -88,6 +88,8 @@ Ask: "Do you have any reference documents? (enter path / skip)"
 
 Step 2에서 스캔한 결과를 바탕으로 프로젝트 intent를 정제하여 FluxLoop 서버에 전송한다.
 
+> 💡 **Intent Refine이란?** 에이전트의 목적·기능·기술 스택을 서버가 이해할 수 있는 형태로 요약·전송하는 단계입니다. 서버가 이 정보를 분석하여 이후 시나리오 생성과 테스트 품질을 높이는 데 활용합니다.
+
 ```bash
 fluxloop intent refine --intent "<에이전트의 목적과 핵심 기능을 1~3문장으로 요약>"
 ```
@@ -111,7 +113,8 @@ fluxloop data push <agent-main-file> --bind
 - `--bind` links the file to the current scenario (use only when a scenario is selected)
 - If no scenario exists, upload to the project library without `--bind`
 
-> 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
+> **필수 결과 출력**: 업로드 완료 후 `✅ Data → N files uploaded to project library` 형식으로 출력.
+> (Data 액션은 URL 없음 — POST_ACTIONS.md 참조)
 
 ### Step 6: Local Save (Dual Write — Local)
 

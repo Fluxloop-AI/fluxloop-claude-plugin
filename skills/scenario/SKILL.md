@@ -57,7 +57,7 @@ Run `fluxloop context show` first:
 - Read `.fluxloop/test-memory/agent-profile.md`:
   - Extract `git_commit` from metadata comment
   - Compare with `git rev-parse --short HEAD`
-  - If different → "The profile looks outdated. Would you like to update it?"
+  - If different → "마지막 프로필 작성 이후 코드가 변경되었습니다 (이전: {old_commit} → 현재: {new_commit}). 프로필을 업데이트할까요?"
     - Yes → follow `_shared/CONTEXT_COLLECTION.md` procedure inline
     - No → continue with existing profile
   - If `git_commit` is `no-git` → continue without warning (stale detection unavailable)
@@ -87,6 +87,13 @@ Suggest 3 scenarios based on `agent-profile.md`:
 | 2 | **Edge Cases** | Exception/boundary handling |
 | 3 | **Advanced** | Multi-turn or domain-specific |
 
+> 💡 **각 타입을 사용자에게 반드시 설명한다:**
+> - **Happy Path**: 에이전트의 핵심 기능이 정상 동작하는 경우를 검증. 예: "{에이전트}가 {주요 기능}을 문제없이 수행하는 시나리오"
+> - **Edge Cases**: 예외 상황이나 경계값을 처리하는 능력을 검증. 예: "잘못된 입력, 빈 값, 특수 조건에서의 동작"
+> - **Advanced**: 다중 턴 대화나 도메인 특화 상황을 검증. 예: "복잡한 요청, 맥락 유지가 필요한 연속 대화"
+>
+> 설명은 `agent-profile.md`의 에이전트 특성에 맞춰 구체적 예시를 제시할 것.
+
 - Present 3 options + "Custom input" → user selects
 - If `learnings.md` insights exist, reflect them in recommendations
   - Example: "Previous tests showed weak edge case handling" → prioritize Edge Cases
@@ -100,6 +107,8 @@ Suggest 3 scenarios based on `agent-profile.md`:
 
 ### Step 5: Contract Creation + Strategy Save (Dual Write)
 
+> 💡 **Contract란?** 에이전트가 각 시나리오에서 지켜야 할 기대 동작을 정의한 규칙(YAML)입니다. 예: "주문 확인 시 금액을 반드시 포함해야 한다". 서버가 자동 생성하며, 사용자가 웹앱에서 편집할 수 있습니다.
+
 **(Server)**:
 
 ```bash
@@ -108,7 +117,11 @@ fluxloop scenarios refine --scenario-id <id>
 fluxloop sync pull   # Download contracts locally
 ```
 
-After `sync pull`: "📋 You can review/edit contracts in the web app"
+After `sync pull` — **반드시 scenario URL을 포함하여 출력**:
+```
+✅ Contracts → N generated 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}
+📋 위 링크에서 contract를 확인·편집할 수 있습니다.
+```
 
 **(Local)**: Save to `.fluxloop/test-memory/test-strategy.md` (format: `test-memory-template/test-strategy.md`)
 
@@ -119,7 +132,8 @@ Fields to populate:
 - Evaluation Criteria: set based on scenario characteristics (default: accuracy, completeness, relevance)
 - Test Configuration: turn mode (TBD), input count (TBD), wrapper path
 
-> 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
+> **필수 링크 출력**: 시나리오 생성 후 CLI 출력에서 `scenario_id`와 `project_id`를 추출하여 URL을 구성한다.
+> URL 패턴: `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}`
 
 ### Step 6: API Key Setup
 

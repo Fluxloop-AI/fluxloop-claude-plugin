@@ -138,7 +138,8 @@ Create the project:
 fluxloop projects create --name "my-agent" --language <code>
 ```
 
-> 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
+> **필수 링크 출력**: 프로젝트 생성/선택 후, CLI 출력에서 `project_id`를 추출하여 아래 형식으로 출력:
+> `✅ Project → "{name}" (proj_xxx) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios?project={project_id}`
 
 ## Error Handling
 

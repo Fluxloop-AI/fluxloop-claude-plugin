@@ -9,6 +9,8 @@ The goal: users should instantly see **where they are**, **what to do**, and **w
 2. **Icon prefixes** — each information type has a designated icon
 3. **Indentation** — commands and details are indented under their parent section
 4. **Minimal prose** — bullet points over paragraphs; one line per fact
+5. **First-encounter explanation** — 도메인 용어(Happy Path, Bundle, Contract, Input Set, Multi-turn 등)를 세션에서 처음 사용할 때 **반드시 1-2문장으로 설명**한다. 사용자의 에이전트 맥락에 맞게 구체적으로 설명할 것.
+6. **Link mandatory** — 서버 리소스를 생성·참조하는 모든 액션은 반드시 `🔗` 링크를 포함한다. "웹앱에서 확인하세요" 같은 모호한 안내 대신 **전체 URL을 직접 출력**한다.
 
 ## Section Dividers
 
@@ -80,7 +82,7 @@ Each step the user needs to act on:
 
 - One thin divider before each step
 - `👉` marks the exact command or action the user must perform
-- Keep explanation to 1 line max; omit if the step title is self-explanatory
+- Keep explanation to 1 line max; **단, 도메인 용어가 처음 등장하면 1-2문장 설명 추가** (Core Principles #5)
 
 ### 4. Selection Prompt
 
@@ -107,7 +109,17 @@ After a CLI action completes:
 ✅ {Action} → {summary} 🔗 {url}
 ```
 
-This follows the existing POST_ACTIONS.md format — no change needed.
+> **필수**: 서버 리소스(Project, Scenario, Input Set, Bundle, Experiment, Evaluation)를 생성·참조한 경우, CLI 출력에서 ID를 추출하여 아래 URL 패턴으로 링크를 반드시 구성한다.
+>
+> | Resource | URL Pattern |
+> |----------|-------------|
+> | Project | `https://alpha.app.fluxloop.ai/simulate/scenarios?project={project_id}` |
+> | Scenario | `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}` |
+> | Input Set | `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/inputs/{input_set_id}?project={project_id}` |
+> | Bundle | `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/bundles/{bundle_version_id}?project={project_id}` |
+> | Experiment | `https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}` |
+>
+> Data 액션 등 URL이 없는 경우만 링크를 생략한다. 전체 예시는 `skills/_shared/POST_ACTIONS.md` 참조.
 
 ### 6. Next Steps Block
 
@@ -222,6 +234,7 @@ Insert anywhere relevant:
 2. **Every section transition** must have a thin divider
 3. **Never output plain text without structure** — even a single-step result needs the header + status + result format
 4. **Commands the user must run** are always marked with `👉`
-5. **POST_ACTIONS.md `✅` format** is unchanged — it integrates naturally into this system
-6. **Keep prose minimal** — if it takes more than 2 lines to explain, use a bullet list
-7. **Status block** appears right after the header, before any action steps
+5. **Link mandatory** — 서버 리소스 생성·참조 시 `✅ Action → summary 🔗 URL` 형식으로 **전체 URL을 반드시 출력**. URL 패턴은 위 "Result / Completion" 섹션 참조.
+6. **First-encounter explanation** — 도메인 용어 첫 사용 시 1-2문장 설명 필수. "자명하므로 생략"은 사용자 관점에서 판단할 것.
+7. **Keep prose minimal** — 설명 후에는 bullet list 사용; 단 Core Principles #5(첫 등장 설명)는 예외
+8. **Status block** appears right after the header, before any action steps
