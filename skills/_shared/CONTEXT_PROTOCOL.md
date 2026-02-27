@@ -4,6 +4,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 
 ## Common 4 Steps
 
+0. Run `fluxloop --version` → if `command not found`, the CLI is not installed → trigger setup skill (installation step) before proceeding
 1. Run `fluxloop context show` → confirm project / scenario ID
 2. Check `.fluxloop/test-memory/` directory:
    - Exists → load relevant files per the mapping below
@@ -70,6 +71,7 @@ Each skill's SKILL.md should include a Context Protocol section following this p
 
 ```markdown
 ## Context Protocol
+0. `fluxloop --version` → if command not found → trigger setup (installation)
 1. `fluxloop context show` → {confirm project state}
 2. `.fluxloop/test-memory/` check:
    - Exists → load {files this skill reads}

@@ -30,28 +30,15 @@ None — this is the entry point. No prior skills required.
 
 ## Workflow
 
-### Step 1: Context Check
+### Step 1: CLI Installation Check
 
-Run `fluxloop context show` and determine current state:
-
-| State | Next Action |
-|-------|-------------|
-| No context.json | Step 2 (start from installation) |
-| Auth only (no project) | Step 4 (project selection) |
-| Project selected | "Setup is complete. Start with '에이전트 파악해줘' (context skill)." |
-| Scenario exists | "Scenario is ready. Start with '테스트 돌려줘' (test skill)." |
-
-Also run `fluxloop auth status` to verify login state.
-
-### Step 2: CLI Installation
-
-Check if installed:
+Check if installed first — **this must run before any other `fluxloop` command**:
 
 ```bash
 fluxloop --version
 ```
 
-If not installed, guide based on the workspace environment:
+If not installed (`command not found`), guide based on the workspace environment:
 
 | Environment | Install Command | Run Command |
 |-------------|----------------|-------------|
@@ -68,6 +55,23 @@ If not installed, guide based on the workspace environment:
 3. If the target version is not published, report available versions and **stop** (never guess ranges)
 4. If Python requirement is higher than the current interpreter, **stop** and offer two choices: upgrade Python or pin a compatible version
 5. On failure, explain root cause in one line (name/version/python mismatch)
+
+### Step 2: Context Check
+
+After CLI is confirmed installed, determine current state:
+
+```bash
+fluxloop context show
+```
+
+| State | Next Action |
+|-------|-------------|
+| No context.json | Step 3 (authentication) |
+| Auth only (no project) | Step 4 (project selection) |
+| Project selected | "Setup is complete. Start with '에이전트 파악해줘' (context skill)." |
+| Scenario exists | "Scenario is ready. Start with '테스트 돌려줘' (test skill)." |
+
+Also run `fluxloop auth status` to verify login state.
 
 ### Step 3: Authentication
 
@@ -137,8 +141,8 @@ fluxloop intent refine --intent "..."
 
 | Error | Response |
 |-------|----------|
-| `fluxloop: command not found` | Guide to Step 2 (installation) |
-| Auth failure / token expired | Guide to Step 3 (re-login) |
+| `fluxloop: command not found` | Guide to Step 1 (installation) |
+| Auth failure / token expired | Guide to Step 3 (authentication) |
 | `fluxloop-cli` version mismatch | Follow Dependency Safety Guardrails — report exact available versions |
 | Project creation failure | Check network, verify login status |
 
@@ -152,9 +156,9 @@ Setup complete! Continue with:
 
 | Step | Command |
 |------|---------|
-| Check | `fluxloop context show` |
-| Check | `fluxloop auth status` |
-| Install | `fluxloop --version` |
+| Install check | `fluxloop --version` |
+| State check | `fluxloop context show` |
+| Auth check | `fluxloop auth status` |
 | Login | `fluxloop auth login --no-wait && fluxloop auth login --resume` |
 | Projects | `fluxloop projects list` |
 | Projects | `fluxloop projects select <id>` |
@@ -165,12 +169,13 @@ Setup complete! Continue with:
 
 ## Key Rules
 
-1. Always run `fluxloop context show` first — skip to the right step based on state
-2. Install `fluxloop-cli` (NOT `fluxloop`)
-3. Install in the SAME environment where your agent runs
-4. Never guess package versions — check `uv pip index versions fluxloop-cli`
-5. Folder names: English kebab-case only (`order-bot`)
-6. Project/scenario display names: any language allowed
-7. Suggest 3 naming candidates, allow custom input
-8. Ask language once at project creation (default: `en`)
-9. After setup, guide to context skill — never jump to scenario directly
+1. Always check `fluxloop --version` first — if not installed, start from Step 1 (installation)
+2. After CLI confirmed, run `fluxloop context show` — skip to the right step based on state
+3. Install `fluxloop-cli` (NOT `fluxloop`)
+4. Install in the SAME environment where your agent runs
+5. Never guess package versions — check `uv pip index versions fluxloop-cli`
+6. Folder names: English kebab-case only (`order-bot`)
+7. Project/scenario display names: any language allowed
+8. Suggest 3 naming candidates, allow custom input
+9. Ask language once at project creation (default: `en`)
+10. After setup, guide to context skill — never jump to scenario directly
