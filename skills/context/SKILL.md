@@ -44,6 +44,8 @@ Run `fluxloop context show` first:
 
 ## Workflow
 
+> ⚠️ 각 Step은 반드시 순차 실행한다. Bash/Read 호출을 병렬로 묶지 않는다. (📎 CONTEXT_PROTOCOL.md 참조)
+
 ### Step 1: Check Existing Profile
 
 Check if `.fluxloop/test-memory/agent-profile.md` exists.
@@ -82,7 +84,22 @@ Ask: "Do you have any reference documents? (enter path / skip)"
 - Path entered → include that file in the scan
 - skip → proceed
 
-### Step 4: Server Upload (Dual Write — Server)
+### Step 4: Intent Refine (서버에 프로젝트 컨텍스트 업로드)
+
+Step 2에서 스캔한 결과를 바탕으로 프로젝트 intent를 정제하여 FluxLoop 서버에 전송한다.
+
+```bash
+fluxloop intent refine --intent "<에이전트의 목적과 핵심 기능을 1~3문장으로 요약>"
+```
+
+- `--intent` 파라미터: Step 2 스캔 결과(에이전트 역할, 주요 기능, 기술 스택)를 기반으로 자동 생성
+- 서버가 intent를 분석/정제하여 저장 → 이후 scenario/test에서 활용됨
+- 성공 응답: "✓ Intent extracted successfully"
+- 실패 시: 에러 메시지 출력 후 Step 5로 진행 (intent 업로드 실패가 전체 워크플로우를 중단하지 않음)
+
+> 📎 Staging environment: read skills/_shared/STAGING.md (staging 환경인 경우 `--staging` 플래그 추가)
+
+### Step 5: Server Upload (Dual Write — Server)
 
 Upload key files:
 
@@ -96,7 +113,7 @@ fluxloop data push <agent-main-file> --bind
 
 > 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
 
-### Step 5: Local Save (Dual Write — Local)
+### Step 6: Local Save (Dual Write — Local)
 
 Ensure `.fluxloop/test-memory/` directory exists (create if missing).
 
@@ -105,7 +122,7 @@ Save to `.fluxloop/test-memory/agent-profile.md`:
 - Format: follow the template from `test-memory-template/agent-profile.md`
 - Replace all placeholders with actual scan results
 
-### Step 6: Profile Summary Output
+### Step 7: Profile Summary Output
 
 Show the generated profile to the user:
 - Key info: agent name, role, LLM, number of tools, key features
@@ -117,6 +134,7 @@ Show the generated profile to the user:
 |-------|----------|
 | Project not set up | Prerequisite Resolution 적용 → setup 인라인 실행 제안 |
 | No README found | Fall back to other files (pyproject.toml, main file); create a limited profile |
+| `fluxloop intent refine` failure | Log error, proceed to next step (best-effort — does not block workflow) |
 | `fluxloop data push` failure | Check network, verify file path, confirm login status |
 | `git rev-parse` failure (not a git repo) | Set `git_commit` to `no-git`; note that stale detection is unavailable |
 
@@ -130,6 +148,7 @@ Profile ready. Available next action:
 | Step | Command |
 |------|---------|
 | Check | `fluxloop context show` |
+| Intent | `fluxloop intent refine --intent "..."` |
 | Upload | `fluxloop data push <file>` |
 | Upload + bind | `fluxloop data push <file> --bind` |
 | Git hash | `git rev-parse --short HEAD` |

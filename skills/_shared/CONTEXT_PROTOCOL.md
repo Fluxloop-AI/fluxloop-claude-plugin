@@ -4,6 +4,8 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 
 ## Common 4 Steps
 
+> ⚠️ **Step 0~2는 반드시 순차 실행**한다. 병렬 호출 시 sibling tool call error가 발생할 수 있으므로, 각 Step의 결과를 확인한 후 다음 Step으로 진행한다. `git rev-parse --short HEAD` 등 부가 명령도 독립 호출이 아닌 해당 Step 내에서 순차 실행한다.
+
 0. Run `fluxloop --version` → if `command not found`, the CLI is not installed → trigger setup skill (installation step) before proceeding
 1. Run `fluxloop context show` → confirm project / scenario ID
 2. Check `.fluxloop/test-memory/` directory:
@@ -24,7 +26,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 | Skill | Reads | Writes | Server Connection (CLI) |
 |-------|-------|--------|------------------------|
 | setup | — | — | `auth login`, `projects create/select` |
-| context | — | agent-profile | `data push` |
+| context | — | agent-profile | `intent refine`, `data push` |
 | scenario | agent-profile, learnings | test-strategy | `scenarios create/refine`, `sync pull` |
 | test | agent-profile, test-strategy | results-log | `sync pull`, `test --scenario` |
 | evaluate | agent-profile, results-log, test-strategy | learnings, results-log | `evaluate --experiment-id` |
@@ -43,7 +45,7 @@ The scenario, test, evaluate, and prompt-compare skills check for staleness when
 ## Data Flow
 
 ```
-context → agent-profile.md + data push (server)
+context → agent-profile.md + intent refine (server) + data push (server)
   ↓
 scenario → read agent-profile (stale? → refresh) → test-strategy.md + scenarios create (server)
   ↓

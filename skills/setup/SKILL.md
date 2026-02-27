@@ -136,7 +136,6 @@ Create the project:
 
 ```bash
 fluxloop projects create --name "my-agent" --language <code>
-fluxloop intent refine --intent "..."
 ```
 
 > 📎 Post-Action: read skills/_shared/POST_ACTIONS.md
@@ -167,7 +166,6 @@ Setup complete. Available next actions:
 | Projects | `fluxloop projects list` |
 | Projects | `fluxloop projects select <id>` |
 | Projects | `fluxloop projects create --name X --language <code>` |
-| Intent | `fluxloop intent refine --intent "..."` |
 
 > 📎 Full CLI reference: read skills/_shared/QUICK_REFERENCE.md
 
