@@ -15,6 +15,10 @@ description: |
 
 **Select-Check-Execute**: Data selection → Pre-check (every path) → Test execution → Result recording (Dual Write)
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 1. `fluxloop context show` → confirm project + scenario are set up
@@ -56,7 +60,7 @@ Run `fluxloop context show` first:
 - Read `.fluxloop/test-memory/test-strategy.md` (if exists):
   - Understand test objectives, evaluation criteria, test configuration
   - Use wrapper path info from test-strategy in Step 3 pre-check
-- If `test-strategy.md` missing: "test-strategy.md not found. You can still run a test, but consider running '시나리오 만들어줘' first for better context."
+- If `test-strategy.md` missing: "test-strategy.md not found. You can still run a test, but running the scenario skill first provides better context."
 
 ### Step 2: Bundle/Input Selection
 
@@ -90,7 +94,7 @@ fluxloop bundles publish --scenario-id <id> --input-set-id <id>
 This step ensures no path skips essential checks. (L-H1 fix)
 
 1. **Wrapper check**: Verify `.fluxloop/scenarios/<name>/agents/wrapper.py` or `runner.target` in `configs/simulation.yaml`
-   - Not configured → "Wrapper setup is needed. Run '래퍼 설정해줘' or see the scenario skill's wrapper guide."
+   - Not configured → "Wrapper setup is needed. See the scenario skill's wrapper guide."
 2. **Turn mode selection**: "Multi-turn? (yes/no), max turns? (default: 8)"
    - If `test-strategy.md` has previous settings → suggest as default
 3. **Provider selection** (multi-turn only): "Provider? (openai/anthropic)"
@@ -160,9 +164,9 @@ Display result summary to the user.
 
 ## Next Steps
 
-Test complete! Continue with:
-- "평가해줘" → evaluate skill (analyze results and generate insights)
-- "프롬프트 비교해줘" → prompt-compare skill (compare prompt versions A vs B)
+Test complete. Available next actions:
+- Analyze results and generate insights (evaluate skill)
+- Compare prompt versions A vs B (prompt-compare skill)
 
 ## Quick Reference
 

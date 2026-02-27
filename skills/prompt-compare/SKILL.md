@@ -17,6 +17,10 @@ description: |
 
 **Same Bundle × N Repeats × Version Diff** — freeze inputs via bundle, automate repeated runs, compare outputs.
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 1. `fluxloop context show` → confirm project + scenario exist
@@ -35,8 +39,8 @@ description: |
 
 Run `fluxloop context show` first:
 - ✅ Project + scenario exist → proceed to Phase 0
-- ❌ No project → "Start with 'fluxloop 세팅해줘' (setup skill)"
-- ❌ No scenario → "Start with '시나리오 만들어줘' (scenario skill)"
+- ❌ No project → Prerequisite Resolution: setup 인라인 실행 제안
+- ❌ No scenario → Prerequisite Resolution: scenario 인라인 실행 제안
 - Minimum: at least 1 bundle is needed (or will be created in Phase 1)
 
 ---
@@ -262,11 +266,11 @@ fluxloop evaluate --experiment-id <exp_B_id> --wait
 
 ## Next Steps
 
-Comparison done! Continue with:
-- "프롬프트 다시 비교해줘" → loop back to Phase 4 (same bundle reused)
-- "평가해줘" → evaluate skill (deep analysis with server evaluation)
-- "테스트 돌려줘" → test skill (run a full test with winning prompt)
-- "시나리오 개선해줘" → scenario skill (refine based on learnings)
+Comparison done. Available next actions:
+- Loop back to Phase 4 for another comparison (same bundle reused)
+- Deep analysis with server evaluation (evaluate skill)
+- Run a full test with winning prompt (test skill)
+- Refine scenario based on learnings (scenario skill)
 
 ## Quick Reference
 

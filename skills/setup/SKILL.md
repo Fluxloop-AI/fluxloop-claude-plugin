@@ -15,6 +15,10 @@ description: |
 
 **Setup-First**: Check state → Install → Authenticate → Select project → Guide next step
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 > setup is a pre-test-memory step — no reads, no writes.
@@ -68,8 +72,8 @@ fluxloop context show
 |-------|-------------|
 | No context.json | Step 3 (authentication) |
 | Auth only (no project) | Step 4 (project selection) |
-| Project selected | "Setup is complete. Start with '에이전트 파악해줘' (context skill)." |
-| Scenario exists | "Scenario is ready. Start with '테스트 돌려줘' (test skill)." |
+| Project selected | "Setup complete. Next: codebase scan & agent profile creation (context skill)." |
+| Scenario exists | "Scenario ready. Next: run tests against the scenario (test skill)." |
 
 Also run `fluxloop auth status` to verify login state.
 
@@ -148,9 +152,9 @@ fluxloop intent refine --intent "..."
 
 ## Next Steps
 
-Setup complete! Continue with:
-- "에이전트 파악해줘" → context skill (codebase scan & profile creation)
-- "시나리오 만들어줘" → scenario skill (auto-runs context first if no profile exists)
+Setup complete. Available next actions:
+- Codebase scan & agent profile creation (context skill)
+- Scenario creation (scenario skill — auto-runs context if no profile exists)
 
 ## Quick Reference
 

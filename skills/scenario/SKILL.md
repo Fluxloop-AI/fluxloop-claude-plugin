@@ -15,6 +15,10 @@ description: |
 
 **Scenario-First**: Agent profile check → Scenario init → Contract creation → Wrapper setup → Test ready
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 1. `fluxloop context show` → confirm project is set up and scenario state
@@ -160,8 +164,8 @@ Basic flow:
 
 ## Next Steps
 
-Scenario ready! Continue with:
-- "테스트 돌려줘" → test skill (run tests against the scenario)
+Scenario ready. Available next action:
+- Run tests against the scenario (test skill)
 
 ## Quick Reference
 

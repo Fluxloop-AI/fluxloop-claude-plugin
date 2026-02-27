@@ -15,6 +15,10 @@ description: |
 
 **Evaluate-Analyze-Improve**: Server evaluation → Result analysis → Insight recording → Code improvement → Re-test loop
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 1. `fluxloop context show` → confirm project / scenario / test results exist
@@ -146,7 +150,7 @@ If code was modified → guide to re-test:
 ### Step 6: Re-evaluate (Iteration Loop)
 
 If unsatisfied with re-test results → repeat from Step 2:
-- Run "평가해줘" again for the same flow
+- Run the evaluate workflow again for the same flow
 - Each iteration appends to `learnings.md` Applied Improvements → tracks improvement history
 
 ## Error Handling
@@ -161,10 +165,10 @@ If unsatisfied with re-test results → repeat from Step 2:
 
 ## Next Steps
 
-Evaluation complete! Continue with:
-- Re-test → "'테스트 돌려줘'" (test skill)
-- Prompt comparison → "'프롬프트 비교해줘'" (prompt-compare skill)
-- Scenario improvement → "'시나리오 만들어줘'" (scenario skill — uses learnings.md)
+Evaluation complete. Available next actions:
+- Re-test with updated code (test skill)
+- Compare prompt versions A vs B (prompt-compare skill)
+- Improve scenario using learnings (scenario skill — reads learnings.md)
 
 ## Quick Reference
 

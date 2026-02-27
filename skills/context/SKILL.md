@@ -15,6 +15,10 @@ description: |
 
 **Scan-Summarize-Save**: Codebase scan → Profile summary → Server upload + Local save (Dual Write)
 
+## Output Format
+
+> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+
 ## Context Protocol
 
 1. `fluxloop context show` → confirm project is set up
@@ -118,8 +122,8 @@ Show the generated profile to the user:
 
 ## Next Steps
 
-Profile ready! Continue with:
-- "시나리오 만들어줘" → scenario skill (create scenarios tailored to the agent)
+Profile ready. Available next action:
+- Scenario creation tailored to the agent profile (scenario skill)
 
 ## Quick Reference
 
