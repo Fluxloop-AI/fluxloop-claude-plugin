@@ -3,12 +3,12 @@ name: fluxloop-context
 description: |
   Use for scanning the codebase and creating/updating the agent profile.
   Frequency: once initially, then only when agent code changes. Stale detection handles this automatically.
-  Keywords: context, profile, scan, update profile, agent info, 에이전트 파악, 프로필 업데이트, 코드베이스 스캔
+  Keywords: context, profile, scan, update profile, agent info
 
   Auto-activates on requests like:
-  - "에이전트 파악해줘", "scan the agent"
-  - "update profile", "프로필 업데이트"
-  - "what does this agent do?", "이 에이전트 뭐 하는 거야?"
+  - "scan the agent", "analyze the agent"
+  - "update profile", "refresh profile"
+  - "what does this agent do?"
 ---
 
 # FluxLoop Context Skill
@@ -38,13 +38,13 @@ description: |
 Run `fluxloop context show` first:
 - ✅ Project selected → proceed
 - ❌ No project → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
-  - "프로젝트 설정이 필요합니다. setup을 먼저 진행할까요?"
-  - 승인 시: 📎 `skills/setup/SKILL.md`의 절차를 인라인 실행 → 완료 후 "✅ Setup 완료. 이어서 context를 진행합니다." → Step 1로 복귀
-  - 거부 시: 중단
+  - "Project setup is required. Would you like to run setup first?"
+  - Approved: 📎 Run `skills/setup/SKILL.md` inline → on completion "✅ Setup complete. Continuing with context." → return to Step 1
+  - Denied: stop
 
 ## Workflow
 
-> ⚠️ 각 Step은 반드시 순차 실행한다. Bash/Read 호출을 병렬로 묶지 않는다. (📎 CONTEXT_PROTOCOL.md 참조)
+> ⚠️ Each Step must be executed sequentially. Do not batch Bash/Read calls in parallel. (📎 See CONTEXT_PROTOCOL.md)
 
 ### Step 1: Check Existing Profile
 
@@ -84,22 +84,22 @@ Ask: "Do you have any reference documents? (enter path / skip)"
 - Path entered → include that file in the scan
 - skip → proceed
 
-### Step 4: Intent Refine (서버에 프로젝트 컨텍스트 업로드)
+### Step 4: Intent Refine (Upload project context to server)
 
-Step 2에서 스캔한 결과를 바탕으로 프로젝트 intent를 정제하여 FluxLoop 서버에 전송한다.
+Refine and send the project intent to the FluxLoop server based on scan results from Step 2.
 
-> 💡 **Intent Refine이란?** 에이전트의 목적·기능·기술 스택을 서버가 이해할 수 있는 형태로 요약·전송하는 단계입니다. 서버가 이 정보를 분석하여 이후 시나리오 생성과 테스트 품질을 높이는 데 활용합니다.
+> 💡 **What is Intent Refine?** This step summarizes the agent's purpose, capabilities, and tech stack into a format the server can understand and transmit it. The server analyzes this information to improve scenario generation and test quality.
 
 ```bash
-fluxloop intent refine --intent "<에이전트의 목적과 핵심 기능을 1~3문장으로 요약>"
+fluxloop intent refine --intent "<1-3 sentence summary of agent purpose and key capabilities>"
 ```
 
-- `--intent` 파라미터: Step 2 스캔 결과(에이전트 역할, 주요 기능, 기술 스택)를 기반으로 자동 생성
-- 서버가 intent를 분석/정제하여 저장 → 이후 scenario/test에서 활용됨
-- 성공 응답: "✓ Intent extracted successfully"
-- 실패 시: 에러 메시지 출력 후 Step 5로 진행 (intent 업로드 실패가 전체 워크플로우를 중단하지 않음)
+- `--intent` parameter: auto-generated based on Step 2 scan results (agent role, key features, tech stack)
+- Server analyzes/refines the intent and stores it → used in subsequent scenario/test steps
+- Success response: "✓ Intent extracted successfully"
+- On failure: display error and proceed to Step 5 (intent upload failure does not block the workflow)
 
-> 📎 Staging environment: read skills/_shared/STAGING.md (staging 환경인 경우 `--staging` 플래그 추가)
+> 📎 Staging environment: read skills/_shared/STAGING.md (add `--staging` flag for staging environments)
 
 ### Step 5: Server Upload (Dual Write — Server)
 
@@ -113,8 +113,8 @@ fluxloop data push <agent-main-file> --bind
 - `--bind` links the file to the current scenario (use only when a scenario is selected)
 - If no scenario exists, upload to the project library without `--bind`
 
-> **필수 결과 출력**: 업로드 완료 후 `✅ Data → N files uploaded to project library` 형식으로 출력.
-> (Data 액션은 URL 없음 — POST_ACTIONS.md 참조)
+> **Required result output**: After upload, display: `✅ Data → N files uploaded to project library`
+> (Data actions have no URL — see POST_ACTIONS.md)
 
 ### Step 6: Local Save (Dual Write — Local)
 
@@ -135,7 +135,7 @@ Show the generated profile to the user:
 
 | Error | Response |
 |-------|----------|
-| Project not set up | Prerequisite Resolution 적용 → setup 인라인 실행 제안 |
+| Project not set up | Apply Prerequisite Resolution → suggest inline setup execution |
 | No README found | Fall back to other files (pyproject.toml, main file); create a limited profile |
 | `fluxloop intent refine` failure | Log error, proceed to next step (best-effort — does not block workflow) |
 | `fluxloop data push` failure | Check network, verify file path, confirm login status |

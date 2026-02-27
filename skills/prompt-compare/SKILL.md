@@ -3,14 +3,14 @@ name: fluxloop-prompt-compare
 description: |
   Use for prompt version comparison and stability testing.
   Frequency: when tuning prompts. Optional — use when A/B comparison is needed.
-  Keywords: compare, comparison, prompt version, stability, A/B test, diff, stability test, 프롬프트 비교
+  Keywords: compare, comparison, prompt version, stability, A/B test, diff, stability test
 
   Auto-activates on requests like:
   - "compare prompts", "compare prompt versions"
   - "stability test", "run a stability test"
   - "v3 vs v4", "version comparison"
   - "run same input multiple times", "run the same input multiple times"
-  - "프롬프트 비교해줘", "비교 테스트 돌려줘"
+  - "compare prompts", "run comparison test"
 ---
 
 # FluxLoop Prompt Compare Skill
@@ -39,8 +39,8 @@ description: |
 
 Run `fluxloop context show` first:
 - ✅ Project + scenario exist → proceed to Phase 0
-- ❌ No project → Prerequisite Resolution: setup 인라인 실행 제안
-- ❌ No scenario → Prerequisite Resolution: scenario 인라인 실행 제안
+- ❌ No project → Prerequisite Resolution: suggest inline setup execution
+- ❌ No scenario → Prerequisite Resolution: suggest inline scenario execution
 - Minimum: at least 1 bundle is needed (or will be created in Phase 1)
 
 ---
@@ -54,13 +54,13 @@ ls .fluxloop/scenarios
 
 | State | Action |
 |-------|--------|
-| No scenario | → "Start with '시나리오 만들어줘' (scenario skill)" |
+| No scenario | → "Start with 'create a scenario' (scenario skill)" |
 | Scenario exists | → Phase 1 |
 
 **test-memory read**:
 1. Read `.fluxloop/test-memory/agent-profile.md`:
    - Extract `git_commit` from metadata → compare with `git rev-parse --short HEAD`
-   - Stale → "프로필이 오래된 것 같은데, 업데이트 해드릴까요?" → Yes → follow `_shared/CONTEXT_COLLECTION.md` inline
+   - Stale → "The profile appears outdated. Would you like to update it?" → Yes → follow `_shared/CONTEXT_COLLECTION.md` inline
 2. Read `.fluxloop/test-memory/results-log.md`:
    - If previous test records exist → display as baseline reference
 
@@ -94,7 +94,7 @@ fluxloop sync pull --bundle-version-id <bundle_version_id>
 
 Ask the user:
 
-> 💡 **Repeats(반복 횟수)**: 동일 입력을 여러 번 실행하여 응답의 일관성(stability)을 측정합니다. 반복이 많을수록 통계적으로 신뢰할 수 있는 비교가 됩니다.
+> 💡 **Repeats**: Measures response consistency (stability) by running the same input multiple times. More repeats produce statistically more reliable comparisons.
 
 ```
 1. Number of repeats? (default: 5)
@@ -142,7 +142,7 @@ After completion:
 2. **(Server)**: results stored automatically on server
 3. **(Local)**: record Version A in `.fluxloop/test-memory/prompt-versions.md`:
    - Git ref, experiment ID, key characteristics
-4. Output — **반드시 🔗 링크 포함**:
+4. Output — **must include 🔗 link**:
    `✅ Baseline → exp_<timestamp> (label: "v3", N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ---
@@ -189,7 +189,7 @@ After completion:
 3. **(Local)**: add Version B to `.fluxloop/test-memory/prompt-versions.md`:
    - Git ref, experiment ID, changes summary, git diff summary
 4. **(Local)**: append comparison entry to `.fluxloop/test-memory/results-log.md`
-5. Output — **반드시 🔗 링크 포함**:
+5. Output — **must include 🔗 link**:
    `✅ Variant → exp_<timestamp> (label: "v4", N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ---
@@ -243,7 +243,7 @@ Choose one:
 3. Done
 ```
 
-> 💡 실험 URL은 Phase 3, 5의 결과 출력에서 이미 제공됩니다. 다시 확인하려면 위 출력을 참조하세요.
+> 💡 Experiment URLs are already provided in Phase 3 and 5 outputs. Refer to those outputs to review them.
 
 If "Additional comparison": loop back to Phase 4 (same bundle reused).
 If "Server evaluation":
@@ -257,7 +257,7 @@ fluxloop evaluate --experiment-id <exp_B_id> --wait
 
 | Error | Response |
 |-------|----------|
-| No scenario exists | "Start with '시나리오 만들어줘' (scenario skill)" |
+| No scenario exists | "Start with 'create a scenario' (scenario skill)" |
 | No bundle available | Guide to bundle creation (Phase 1) |
 | Baseline run fails | Check wrapper setup, API key, network. Resolve before continuing. |
 | Variant run fails | Same check. Do NOT compare partial results. |

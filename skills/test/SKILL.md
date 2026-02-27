@@ -3,12 +3,12 @@ name: fluxloop-test
 description: |
   Use for running tests against scenarios — includes data selection, bundle management, and test execution.
   Frequency: the most common entry point. Run repeatedly during the test-evaluate-fix loop.
-  Keywords: test, run test, test my agent, simulation, run simulation, generate test data, synthesize inputs, 테스트, 테스트 돌려, 시뮬레이션
+  Keywords: test, run test, test my agent, simulation, run simulation, generate test data, synthesize inputs
 
   Auto-activates on requests like:
-  - "테스트 돌려줘", "run the test"
-  - "test my agent", "시뮬레이션 실행"
-  - "generate test data", "테스트 데이터 만들어줘"
+  - "run the test", "test my agent"
+  - "run simulation", "execute test"
+  - "generate test data", "synthesize inputs"
 ---
 
 # FluxLoop Test Skill
@@ -38,13 +38,13 @@ description: |
 
 Run `fluxloop context show` first:
 - ✅ Project selected + scenario exists → proceed
-- ❌ 누락된 단계 감지 → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
-  - 누락 범위를 파악하고 필요한 체인을 나열한다:
-    - setup 누락: "setup → context → scenario 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-    - context 누락: "context → scenario 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-    - scenario만 누락: "scenario 생성이 필요합니다. 먼저 진행할까요?"
-  - 승인 시: 필요한 스킬을 순서대로 인라인 실행 → 각 완료 시 "✅ {스킬명} 완료." → 모두 완료 후 Step 1로 복귀
-  - 거부 시: 중단
+- ❌ Missing steps detected → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
+  - Identify the missing scope and list the required chain:
+    - setup missing: "setup → context → scenario are required. Proceed in order?"
+    - context missing: "context → scenario are required. Proceed in order?"
+    - scenario only missing: "Scenario creation is required. Proceed first?"
+  - Approved: run required skills in order inline → on each completion "✅ {skill_name} complete." → after all complete, return to Step 1
+  - Denied: stop
 
 ## Workflow
 
@@ -64,10 +64,10 @@ Run `fluxloop context show` first:
 
 ### Step 2: Bundle/Input Selection
 
-> 💡 **용어 설명** (세션에서 처음 등장 시 반드시 사용자에게 전달):
-> - **Bundle**: 테스트 입력과 페르소나를 하나로 묶은 스냅샷. 동일 조건으로 반복 테스트할 수 있게 해줍니다.
-> - **Input Set**: AI가 생성한 테스트 입력 데이터 모음. Bundle로 발행해야 테스트에 사용 가능합니다.
-> - **Persona**: 테스트에서 사용할 가상 사용자 유형 (예: "급한 고객", "처음 이용하는 사용자").
+> 💡 **Terminology** (must be explained to the user on first appearance in the session):
+> - **Bundle**: A snapshot that combines test inputs and personas. Enables repeatable tests under identical conditions.
+> - **Input Set**: A collection of AI-generated test input data. Must be published as a Bundle before it can be used in tests.
+> - **Persona**: A virtual user type for testing (e.g., "impatient customer", "first-time user").
 
 > 📎 Bundle selection decision tree: read skills/_shared/BUNDLE_DECISION.md
 
@@ -83,21 +83,21 @@ Run `fluxloop bundles list --scenario-id <id>` and follow the decision tree:
 
 When showing multiple resources, include: **version/name, tag/description, count, created date**
 
-**Full generation path (각 단계 완료 후 반드시 결과를 사용자에게 출력):**
+**Full generation path (must output results to the user after each step):**
 
-1. Persona 생성:
+1. Persona generation:
    ```bash
    fluxloop personas suggest --scenario-id <id>
    ```
-   > **필수 출력**: `✅ Personas → N개 생성됨` + 생성된 페르소나 이름 목록 표시
+   > **Required output**: `✅ Personas → N generated` + list of generated persona names
 
-2. Input 생성:
+2. Input generation:
    ```bash
    fluxloop inputs synthesize --scenario-id <id>    # --timeout 300 for large, --total-count 2 for quick
    ```
-   > **필수 출력**: CLI 출력에서 `input_set_id`와 입력 개수를 추출하여:
-   > `✅ Input Set → {input_set_id} ({N}개 입력) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/inputs/{input_set_id}?project={project_id}`
-   > + 생성된 입력 내용 요약 (어떤 테스트 케이스가 만들어졌는지 1-2줄)
+   > **Required output**: Extract `input_set_id` and input count from CLI output:
+   > `✅ Input Set → {input_set_id} ({N} inputs) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/inputs/{input_set_id}?project={project_id}`
+   > + brief summary of generated inputs (1-2 lines describing what test cases were created)
 
 3. (Interactive only) QC & Refine:
    ```bash
@@ -105,11 +105,11 @@ When showing multiple resources, include: **version/name, tag/description, count
    fluxloop inputs refine --scenario-id <id> --input-set-id <id>
    ```
 
-4. Bundle 발행:
+4. Bundle publish:
    ```bash
    fluxloop bundles publish --scenario-id <id> --input-set-id <id>
    ```
-   > **필수 출력**: `✅ Bundle → v{N} ({bundle_version_id}) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/bundles/{bundle_version_id}?project={project_id}`
+   > **Required output**: `✅ Bundle → v{N} ({bundle_version_id}) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}/bundles/{bundle_version_id}?project={project_id}`
 
 > ⚠️ Do NOT run `fluxloop test` here — always proceed to Step 3 first. (E-M2 fix)
 
@@ -120,7 +120,7 @@ This step ensures no path skips essential checks. (L-H1 fix)
 1. **Wrapper check**: Verify `.fluxloop/scenarios/<name>/agents/wrapper.py` or `runner.target` in `configs/simulation.yaml`
    - Not configured → "Wrapper setup is needed. See the scenario skill's wrapper guide."
 2. **Turn mode selection**: "Multi-turn? (yes/no), max turns? (default: 8)"
-   > 💡 **Multi-turn이란?** 에이전트와 여러 번 주고받는 대화를 시뮬레이션합니다. Single-turn은 1회 질문-응답만 테스트하고, Multi-turn은 맥락을 유지하며 연속 대화하는 능력을 검증합니다.
+   > 💡 **What is Multi-turn?** Simulates a conversation with multiple back-and-forth exchanges with the agent. Single-turn tests only one question-response, while Multi-turn verifies the ability to maintain context across consecutive conversations.
    - If `test-strategy.md` has previous settings → suggest as default
 3. **Provider selection** (multi-turn only): "Provider? (openai/anthropic)"
 
@@ -162,7 +162,7 @@ Fields to populate:
 - Insight: (leave empty — evaluate skill fills this)
 - Server link: experiment URL
 
-> **필수 링크 출력**: 테스트 완료 후 CLI 출력에서 `experiment_id`를 추출하여 아래 형식으로 반드시 출력:
+> **Required link output**: After test completion, extract `experiment_id` from CLI output and display:
 > `✅ Test → exp_xxx (N runs) 🔗 https://alpha.app.fluxloop.ai/release/experiments/{experiment_id}/evaluation?project={project_id}`
 
 ### Step 6: Results Review
@@ -179,8 +179,8 @@ Display result summary to the user.
 
 | Error | Response |
 |-------|----------|
-| No project set up | Prerequisite Resolution 적용 → setup~scenario 체인 인라인 실행 제안 |
-| No scenario | Prerequisite Resolution 적용 → scenario 인라인 실행 제안 |
+| No project set up | Apply Prerequisite Resolution → suggest inline setup~scenario chain execution |
+| No scenario | Apply Prerequisite Resolution → suggest inline scenario execution |
 | `Sync API key not set` | "Run `fluxloop apikeys create` or check `.fluxloop/.env`" |
 | `Inputs file not found` | "Run `fluxloop sync pull --bundle-version-id <id>` first" |
 | `No personas found` | "Run `fluxloop personas suggest --scenario-id <id>` first" |
@@ -222,7 +222,7 @@ Test complete. Available next actions:
 4. NEVER run `fluxloop test` as part of bundle selection (E-M2 fix) — always go through Pre-check first
 5. Use `sync pull` + `test` separately — NEVER use `--pull` option
 6. Multi-turn commands must start with `!` prefix
-7. Use explicit IDs (`--bundle-version-id`, `--scenario-id`) — **CLI 테이블 출력은 UUID를 잘라서 표시할 수 있으므로, 사용 전 반드시 36자(`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) 검증. 36자 미만이면 list 명령 재실행하여 전체 ID 확보 후 사용.**
+7. Use explicit IDs (`--bundle-version-id`, `--scenario-id`) — **CLI table output may truncate UUIDs. Always validate 36 characters (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) before use. If less than 36 characters, re-run the list command to obtain the full ID.**
 8. Dual Write: server (test results + experiment ID) and local (`results-log.md`) at the same time
 9. Use the template from `test-memory-template/results-log.md` for output format
 10. Append to `results-log.md` (most recent at top) — do NOT overwrite

@@ -3,12 +3,11 @@ name: fluxloop-scenario
 description: |
   Use for creating test scenarios, contracts, and agent wrapper setup.
   Frequency: when test objectives change or new scenarios are needed. Reuses existing scenarios otherwise.
-  Keywords: scenario, create scenario, init, contract, wrapper, agent setup, 시나리오, 시나리오 만들기, 계약
+  Keywords: scenario, create scenario, init, contract, wrapper, agent setup
 
   Auto-activates on requests like:
-  - "시나리오 만들어줘", "create a scenario"
-  - "init scenario", "set up a test"
-  - "래퍼 설정해줘", "configure the wrapper"
+  - "create a scenario", "init scenario"
+  - "set up a test", "configure the wrapper"
 ---
 
 # FluxLoop Scenario Skill
@@ -27,7 +26,7 @@ description: |
    - Load `learnings.md` → incorporate previous insights (if exists)
    - Missing files → proceed (first run)
 3. Dual Write:
-   - Server: `fluxloop scenarios create/refine`, `fluxloop sync pull`
+   - Server: `fluxloop scenarios create/refine`
    - Local: save to `.fluxloop/test-memory/test-strategy.md`
 4. On completion: verify `test-strategy.md` is current for the test skill
 
@@ -38,17 +37,17 @@ description: |
 
 Run `fluxloop context show` first:
 - ✅ Project selected + `.fluxloop/test-memory/agent-profile.md` exists → proceed
-- ❌ No project (setup 누락) → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
-  - "프로젝트 설정과 에이전트 분석이 모두 필요합니다. setup → context 순서로 진행할까요?"
-  - 승인 시:
-    1. 📎 `skills/setup/SKILL.md` 인라인 실행 → "✅ Setup 완료."
-    2. 📎 `skills/context/SKILL.md` 인라인 실행 → "✅ Context 완료. 이어서 scenario를 진행합니다."
-    → Step 1로 복귀
-  - 거부 시: 중단
-- ❌ Project selected but no agent-profile.md (context 누락) → Prerequisite Resolution:
-  - "에이전트 분석이 필요합니다. context를 먼저 진행할까요?"
-  - 승인 시: 📎 `skills/context/SKILL.md` 인라인 실행 → 완료 후 Step 1로 복귀
-  - 거부 시: 중단
+- ❌ No project (setup missing) → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
+  - "Both project setup and agent analysis are required. Proceed with setup → context in order?"
+  - Approved:
+    1. 📎 Run `skills/setup/SKILL.md` inline → "✅ Setup complete."
+    2. 📎 Run `skills/context/SKILL.md` inline → "✅ Context complete. Continuing with scenario."
+    → return to Step 1
+  - Denied: stop
+- ❌ Project selected but no agent-profile.md (context missing) → Prerequisite Resolution:
+  - "Agent analysis is required. Would you like to run context first?"
+  - Approved: 📎 Run `skills/context/SKILL.md` inline → on completion return to Step 1
+  - Denied: stop
 
 ## Workflow
 
@@ -57,7 +56,7 @@ Run `fluxloop context show` first:
 - Read `.fluxloop/test-memory/agent-profile.md`:
   - Extract `git_commit` from metadata comment
   - Compare with `git rev-parse --short HEAD`
-  - If different → "마지막 프로필 작성 이후 코드가 변경되었습니다 (이전: {old_commit} → 현재: {new_commit}). 프로필을 업데이트할까요?"
+  - If different → "Code has changed since the last profile was created (previous: {old_commit} → current: {new_commit}). Would you like to update the profile?"
     - Yes → follow `_shared/CONTEXT_COLLECTION.md` procedure inline
     - No → continue with existing profile
   - If `git_commit` is `no-git` → continue without warning (stale detection unavailable)
@@ -87,12 +86,12 @@ Suggest 3 scenarios based on `agent-profile.md`:
 | 2 | **Edge Cases** | Exception/boundary handling |
 | 3 | **Advanced** | Multi-turn or domain-specific |
 
-> 💡 **각 타입을 사용자에게 반드시 설명한다:**
-> - **Happy Path**: 에이전트의 핵심 기능이 정상 동작하는 경우를 검증. 예: "{에이전트}가 {주요 기능}을 문제없이 수행하는 시나리오"
-> - **Edge Cases**: 예외 상황이나 경계값을 처리하는 능력을 검증. 예: "잘못된 입력, 빈 값, 특수 조건에서의 동작"
-> - **Advanced**: 다중 턴 대화나 도메인 특화 상황을 검증. 예: "복잡한 요청, 맥락 유지가 필요한 연속 대화"
+> 💡 **Always explain each type to the user:**
+> - **Happy Path**: Verifies the agent's core functionality works correctly. E.g., "Scenario where {agent} performs {key function} without issues"
+> - **Edge Cases**: Verifies the ability to handle exceptions and boundary conditions. E.g., "Behavior with invalid inputs, empty values, special conditions"
+> - **Advanced**: Verifies multi-turn conversations or domain-specific scenarios. E.g., "Complex requests, consecutive conversations requiring context retention"
 >
-> 설명은 `agent-profile.md`의 에이전트 특성에 맞춰 구체적 예시를 제시할 것.
+> Tailor explanations with specific examples based on agent characteristics from `agent-profile.md`.
 
 - Present 3 options + "Custom input" → user selects
 - If `learnings.md` insights exist, reflect them in recommendations
@@ -105,22 +104,30 @@ Suggest 3 scenarios based on `agent-profile.md`:
 - If project-level language is already set → suggest as default, allow override
 - Apply to `fluxloop scenarios create --name "..." --goal "..."` command
 
-### Step 5: Contract Creation + Strategy Save (Dual Write)
+### Step 5: API Key Setup
 
-> 💡 **Contract란?** 에이전트가 각 시나리오에서 지켜야 할 기대 동작을 정의한 규칙(YAML)입니다. 예: "주문 확인 시 금액을 반드시 포함해야 한다". 서버가 자동 생성하며, 사용자가 웹앱에서 편집할 수 있습니다.
+- Check `.fluxloop/.env` → if exists, skip
+- If missing: `fluxloop apikeys create`
+- API key file location: `.fluxloop/.env` (shared across scenarios)
+- Manual addition guide:
+  - OpenAI: `OPENAI_API_KEY=sk-xxx`
+  - Anthropic: `ANTHROPIC_API_KEY=sk-ant-xxx`
+
+### Step 6: Contract Creation + Strategy Save (Dual Write)
+
+> 💡 **What is a Contract?** Rules (YAML) that define the expected behavior an agent must follow in each scenario. E.g., "Must include the amount when confirming an order." The server auto-generates them, and users can edit them in the web app.
 
 **(Server)**:
 
 ```bash
 fluxloop scenarios create --name "Order Accuracy Test" --goal "..."
 fluxloop scenarios refine --scenario-id <id>
-fluxloop sync pull   # Download contracts locally
 ```
 
-After `sync pull` — **반드시 scenario URL을 포함하여 출력**:
+After `scenarios refine` — **must include scenario URL in output**:
 ```
 ✅ Contracts → N generated 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}
-📋 위 링크에서 contract를 확인·편집할 수 있습니다.
+📋 You can review and edit contracts at the link above.
 ```
 
 **(Local)**: Save to `.fluxloop/test-memory/test-strategy.md` (format: `test-memory-template/test-strategy.md`)
@@ -132,17 +139,8 @@ Fields to populate:
 - Evaluation Criteria: set based on scenario characteristics (default: accuracy, completeness, relevance)
 - Test Configuration: turn mode (TBD), input count (TBD), wrapper path
 
-> **필수 링크 출력**: 시나리오 생성 후 CLI 출력에서 `scenario_id`와 `project_id`를 추출하여 URL을 구성한다.
-> URL 패턴: `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}`
-
-### Step 6: API Key Setup
-
-- Check `.fluxloop/.env` → if exists, skip
-- If missing: `fluxloop apikeys create`
-- API key file location: `.fluxloop/.env` (shared across scenarios)
-- Manual addition guide:
-  - OpenAI: `OPENAI_API_KEY=sk-xxx`
-  - Anthropic: `ANTHROPIC_API_KEY=sk-ant-xxx`
+> **Required link output**: After scenario creation, extract `scenario_id` and `project_id` from CLI output to construct the URL.
+> URL pattern: `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}`
 
 ### Step 7: Wrapper Setup
 
@@ -158,7 +156,7 @@ Basic flow:
 | Step | Interactive | Auto |
 |------|------------|------|
 | Step 3: Scenario selection | Ask (required) | Auto-select #1 |
-| Step 5: Contract review | URL only | URL only |
+| Step 6: Contract review | URL only | URL only |
 
 > Max 1 required user response (scenario selection).
 
@@ -166,8 +164,8 @@ Basic flow:
 
 | Error | Response |
 |-------|----------|
-| No project set up | Prerequisite Resolution 적용 → setup + context 인라인 실행 제안 |
-| No agent profile | Prerequisite Resolution 적용 → context 인라인 실행 제안 |
+| No project set up | Apply Prerequisite Resolution → suggest inline setup + context execution |
+| No agent profile | Apply Prerequisite Resolution → suggest inline context execution |
 | `fluxloop init scenario` in home directory | "Run from workspace root, not home. Check `pwd` and `fluxloop context show`" |
 | `scenarios create` failure | Check network, verify login status, confirm project is selected |
 | `scenarios refine` timeout | Retry with `fluxloop scenarios refine --scenario-id <id>` |
@@ -189,7 +187,6 @@ Scenario ready. Available next action:
 | Init | `fluxloop init scenario <name>` |
 | Create | `fluxloop scenarios create --name X --goal "..."` |
 | Refine | `fluxloop scenarios refine --scenario-id <id>` |
-| Pull | `fluxloop sync pull` |
 | API key | `fluxloop apikeys create` |
 | Git hash | `git rev-parse --short HEAD` |
 
@@ -205,5 +202,5 @@ Scenario ready. Available next action:
 6. Display names: any language allowed
 7. Suggest 3 naming candidates, allow custom input
 8. Run `fluxloop init scenario` from workspace root (NOT home directory)
-9. Dual Write: server (`scenarios create/refine` + `sync pull`) and local (`test-strategy.md`) at the same time
+9. Dual Write: server (`scenarios create/refine`) and local (`test-strategy.md`) at the same time
 10. On update: overwrite `test-strategy.md` entirely (not append)

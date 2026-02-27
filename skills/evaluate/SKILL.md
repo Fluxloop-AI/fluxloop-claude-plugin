@@ -3,12 +3,12 @@ name: fluxloop-evaluate
 description: |
   Use for evaluating test results, analyzing insights, and improving the agent.
   Frequency: after every test run. Core of the daily test → evaluate → fix loop.
-  Keywords: evaluate, evaluation, improve, analyze results, insights, recommendations, re-test, 평가, 개선, 분석
+  Keywords: evaluate, evaluation, improve, analyze results, insights, recommendations, re-test
 
   Auto-activates on requests like:
-  - "평가해줘", "evaluate the results"
-  - "에이전트 개선해줘", "improve my agent"
-  - "결과 분석해줘", "analyze results"
+  - "evaluate the results", "analyze results"
+  - "improve my agent", "what went wrong"
+  - "generate insights", "review test results"
 ---
 
 # FluxLoop Evaluate Skill
@@ -24,7 +24,7 @@ description: |
 1. `fluxloop context show` → confirm project / scenario / test results exist
 2. `.fluxloop/test-memory/` check:
    - Exists → load `agent-profile.md`, `results-log.md`, `test-strategy.md`
-   - Missing → "Run '테스트 돌려줘' first"
+   - Missing → "Run 'run the test' (test skill) first"
 3. Dual Write:
    - Server: `fluxloop evaluate --experiment-id`
    - Local: save to `.fluxloop/test-memory/learnings.md`, append to `.fluxloop/test-memory/results-log.md`
@@ -37,14 +37,14 @@ description: |
 
 Run `fluxloop context show` first:
 - ✅ Project selected + scenario exists + test completed → proceed
-- ❌ 누락된 단계 감지 → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
-  - 누락 범위를 파악하고 필요한 체인을 나열한다:
-    - setup 누락: "setup → context → scenario → test 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-    - context 누락: "context → scenario → test 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-    - scenario 누락: "scenario → test 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-    - test만 누락: "테스트 실행이 필요합니다. 먼저 진행할까요?"
-  - 승인 시: 필요한 스킬을 순서대로 인라인 실행 → 각 완료 시 "✅ {스킬명} 완료." → 모두 완료 후 Step 1로 복귀
-  - 거부 시: 중단
+- ❌ Missing steps detected → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
+  - Identify the missing scope and list the required chain:
+    - setup missing: "setup → context → scenario → test are required. Proceed in order?"
+    - context missing: "context → scenario → test are required. Proceed in order?"
+    - scenario missing: "scenario → test are required. Proceed in order?"
+    - test only missing: "Test execution is required. Proceed first?"
+  - Approved: run required skills in order inline → on each completion "✅ {skill_name} complete." → after all complete, return to Step 1
+  - Denied: stop
 
 Verify test completion: check `.fluxloop/test-memory/results-log.md` has at least 1 entry, or run `fluxloop test results --scenario <name>`.
 
@@ -53,7 +53,7 @@ Verify test completion: check `.fluxloop/test-memory/results-log.md` has at leas
 ### Step 1: Context Load
 
 - Read `.fluxloop/test-memory/agent-profile.md` → stale check (compare `git_commit` vs `git rev-parse --short HEAD`)
-  - Stale → "프로필이 오래된 것 같은데, 업데이트 해드릴까요?"
+  - Stale → "The profile appears outdated. Would you like to update it?"
     - Yes → run collection procedure inline (📎 read skills/_shared/CONTEXT_COLLECTION.md)
     - No → continue with existing profile
 - Read `.fluxloop/test-memory/results-log.md` → identify latest experiment ID, pass/fail ratio, history
@@ -88,7 +88,7 @@ fluxloop evaluate --experiment-id <id> --wait --timeout 900 --poll-interval 5
 **Server link**: 🔗 {experiment URL}
 ```
 
-> **필수 링크 출력**: 아래 Web Handoff 형식을 반드시 따른다. CLI 출력에서 `experiment_id`와 `project_id`를 추출하여 URL을 구성한다.
+> **Required link output**: Must follow the Web Handoff format below. Extract `experiment_id` and `project_id` from CLI output to construct the URL.
 
 **Web Handoff** — output after evaluation:
 
@@ -102,6 +102,8 @@ fluxloop evaluate --experiment-id <id> --wait --timeout 900 --poll-interval 5
 ```
 
 ### Step 3: Result Analysis + Insight Recording
+
+> 📎 Bundle selection required. If no bundle is selected: read skills/_shared/BUNDLE_DECISION.md
 
 Sync and analyze:
 
@@ -140,12 +142,14 @@ After edits, the hook runs `fluxloop test --smoke --quiet` automatically.
 ### Step 5: Re-test Guidance
 
 If code was modified → guide to re-test:
-- "테스트 돌려줘" (test skill)
+- "run the test" (test skill)
 - Use the same bundle for comparison consistency:
   ```bash
   fluxloop sync pull --bundle-version-id <id>
   fluxloop test --scenario <name>
   ```
+
+> 📎 Bundle selection required. If no bundle is selected: read skills/_shared/BUNDLE_DECISION.md
 
 ### Step 6: Re-evaluate (Iteration Loop)
 
@@ -160,7 +164,7 @@ If unsatisfied with re-test results → repeat from Step 2:
 | Experiment ID not found | `fluxloop test results --scenario <name>` to find recent experiment ID |
 | Evaluation timeout | Retry with `--timeout 900 --poll-interval 5` |
 | Evaluation status `failed` / `cancelled` | Possible server issue; check status in web app |
-| `.fluxloop/test-memory/results-log.md` missing | Prerequisite Resolution 적용 → test 인라인 실행 제안 |
+| `.fluxloop/test-memory/results-log.md` missing | Apply Prerequisite Resolution → suggest inline test execution |
 | Worker delay (`queued` >30s without `locked_at`) | "Workers may be down or backlog is high" |
 
 ## Next Steps

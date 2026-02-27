@@ -3,12 +3,12 @@ name: fluxloop-setup
 description: |
   Use for FluxLoop CLI installation, authentication, and project setup.
   Frequency: once per project. Automatically skipped if already set up.
-  Keywords: setup, install, configure, login, auth, first time, get started, 세팅, 설치, 시작
+  Keywords: setup, install, configure, login, auth, first time, get started
 
   Auto-activates on requests like:
-  - "set up fluxloop", "fluxloop 세팅해줘"
-  - "install fluxloop", "configure fluxloop"
-  - "log in to fluxloop", "get started"
+  - "set up fluxloop", "install fluxloop"
+  - "configure fluxloop", "log in to fluxloop"
+  - "get started"
 ---
 
 # FluxLoop Setup Skill
@@ -110,7 +110,7 @@ fluxloop projects select <project_id>
 | Field | Language | Format |
 |-------|----------|--------|
 | Folder name | **English only** | kebab-case (`order-bot`) |
-| Project/Scenario name | Any | Display text ("Order Bot", "주문 봇") |
+| Project/Scenario name | Any | Display text ("Order Bot", "Support Agent") |
 
 Suggest 3 candidates based on the codebase:
 - Analyze: `package.json`, `pyproject.toml`, main agent file, README, directory name
@@ -138,7 +138,7 @@ Create the project:
 fluxloop projects create --name "my-agent" --language <code>
 ```
 
-> **필수 링크 출력**: 프로젝트 생성/선택 후, CLI 출력에서 `project_id`를 추출하여 아래 형식으로 출력:
+> **Required link output**: After project creation/selection, extract `project_id` from CLI output and display:
 > `✅ Project → "{name}" (proj_xxx) 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios?project={project_id}`
 
 ## Error Handling
