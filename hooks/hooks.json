@@ -3,7 +3,11 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "command": "if [ -f .fluxloop/context.json ] && command -v fluxloop >/dev/null 2>&1; then fluxloop test --smoke --quiet; fi"
+        "hooks": [
+          {
+            "command": "if [ -f .fluxloop/context.json ] && command -v fluxloop >/dev/null 2>&1; then fluxloop test --smoke --quiet; fi"
+          }
+        ]
       }
     ]
   }
