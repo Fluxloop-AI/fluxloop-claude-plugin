@@ -48,7 +48,7 @@ project_root/
 
 ## ID Extraction
 
-ID가 필요한 list 명령은 반드시 `--format json`을 사용한다. 테이블 출력은 터미널 폭에 따라 UUID가 잘릴 수 있다.
+Always use `--format json` for list commands that require IDs. Table output may truncate UUIDs depending on terminal width.
 
 ```bash
 fluxloop bundles list --scenario-id <id> --format json

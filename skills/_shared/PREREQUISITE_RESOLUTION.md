@@ -1,55 +1,55 @@
 # Prerequisite Resolution Protocol
 
-스킬 실행 중 prerequisite가 누락된 경우, 사용자에게 "먼저 X해주세요"라고 안내하고 중단하지 않는다.
-대신 아래 절차를 따라 선행 스킬을 인라인 실행한다.
+When a prerequisite is missing during skill execution, do not tell the user "Please do X first" and stop.
+Instead, follow the procedure below to execute prerequisite skills inline.
 
-## 의존성 체인
+## Dependency Chain
 
 ```
 setup → context → scenario → test → evaluate
 ```
 
-## Resolution 절차
+## Resolution Procedure
 
-1. **CLI 설치 확인**: `fluxloop --version` 실행 → `command not found` 시 setup 스킬의 설치 단계부터 시작
-2. **누락 범위 파악**: `fluxloop context show` + 로컬 파일 존재 여부로 어디부터 필요한지 식별
-3. **사용자 확인**: 필요한 선행 단계를 나열하고 한 번에 확인
-   - 1개 누락: "{스킬명}이 아직 완료되지 않았습니다. 먼저 진행할까요?"
-   - 다단계 누락: "{스킬A} → {스킬B} 순서로 진행이 필요합니다. 순서대로 진행할까요?"
-4. **승인 시**: 필요한 스킬을 순서대로 인라인 실행
-   - 각 스킬의 SKILL.md 절차를 따름
-   - 각 완료 시: "✅ {스킬명} 완료 — {해당 스킬이 한 일을 1문장으로 요약}. 이어서 {다음}을 진행합니다."
-     - 예: "✅ Setup 완료 — CLI 설치 및 프로젝트 연결이 완료되었습니다. 이어서 context를 진행합니다."
-     - 예: "✅ Context 완료 — 에이전트 코드를 분석하여 프로필을 생성했습니다. 이어서 scenario를 진행합니다."
-   - 모든 선행 완료 후: 원래 요청한 스킬의 Step 1로 자동 복귀
-5. **거부 시**: 현재 스킬을 중단하고, 어떤 선행 스킬이 필요한지만 안내
+1. **Check CLI installation**: Run `fluxloop --version` → if `command not found`, start from the setup skill's installation step
+2. **Identify missing scope**: Use `fluxloop context show` + local file existence to identify where to start
+3. **User confirmation**: List the required prerequisite steps and confirm at once
+   - 1 missing: "{skill_name} has not been completed yet. Shall I proceed with it first?"
+   - Multiple missing: "{skill_A} → {skill_B} need to be run in order. Shall I proceed sequentially?"
+4. **On approval**: Execute the required skills inline in order
+   - Follow each skill's SKILL.md procedure
+   - On each completion: "✅ {skill_name} complete — {one-sentence summary of what the skill did}. Continuing with {next}."
+     - Example: "✅ Setup complete — CLI installed and project connected. Continuing with context."
+     - Example: "✅ Context complete — Analyzed agent code and generated profile. Continuing with scenario."
+   - After all prerequisites complete: automatically return to Step 1 of the originally requested skill
+5. **On rejection**: Stop the current skill and only inform which prerequisite skills are needed
 
-## 인라인 실행 규칙
+## Inline Execution Rules
 
-- 선행 스킬의 **핵심 절차만** 수행 — 마무리 안내("다음에는 X를 해보세요")는 생략
-- 선행 스킬 실행 중 에러 발생 시 → 해당 에러를 사용자에게 보고하고 **전체 중단** (원래 스킬까지 진행하지 않음)
-- setup 스킬은 사용자 인터랙션(로그인, 프로젝트 선택)이 필요하므로 해당 단계는 그대로 유지
-- 한 번의 확인으로 필요한 모든 선행 스킬을 순서대로 실행 (매 스킬마다 재확인하지 않음)
+- Execute only the **core procedure** of prerequisite skills — skip closing guidance ("Next, you can try X")
+- If an error occurs during prerequisite execution → report the error to the user and **stop entirely** (do not proceed to the original skill)
+- The setup skill requires user interaction (login, project selection), so keep those steps as-is
+- A single confirmation covers all required prerequisite skills executed in order (do not re-confirm for each skill)
 
-## 상태 판별 기준
+## Status Check Criteria
 
-| 체크 대상 | 확인 방법 | 누락 시 필요한 스킬 |
-|-----------|-----------|---------------------|
-| CLI 설치 | `fluxloop --version` → command not found | setup (설치 단계) |
-| 프로젝트 설정 | `fluxloop context show` → project 없음 | setup (인증/프로젝트 단계) |
-| 에이전트 프로필 | `.fluxloop/test-memory/agent-profile.md` 부재 | context |
-| 시나리오 | `fluxloop context show` → scenario 없음 | scenario |
-| 테스트 결과 | `.fluxloop/test-memory/results-log.md` 부재 또는 엔트리 0건 | test |
+| Check Target | How to Check | Required Skill if Missing |
+|--------------|-------------|--------------------------|
+| CLI installation | `fluxloop --version` → command not found | setup (installation step) |
+| Project setup | `fluxloop context show` → no project | setup (auth/project step) |
+| Agent profile | `.fluxloop/test-memory/agent-profile.md` absent | context |
+| Scenario | `fluxloop context show` → no scenario | scenario |
+| Test results | `.fluxloop/test-memory/results-log.md` absent or 0 entries | test |
 
-## Skip 메시지 (이미 완료된 경우)
+## Skip Messages (when already completed)
 
-Prerequisite가 이미 충족된 상태에서 인라인 실행이 트리거될 때, 해당 스킬을 생략하며 한 줄로 이유를 알린다.
+When a prerequisite is already met and inline execution is triggered, skip the skill and notify with a single line.
 
-| 상태 | 메시지 |
-|------|--------|
-| setup (설치) 완료 | "✅ fluxloop-cli 설치됨 (vX.X.X) — 설치 단계 생략" |
-| setup (프로젝트) 완료 | "✅ 프로젝트 연결됨 (proj_xxx) — setup 생략" |
-| context 완료 (최신) | "✅ 에이전트 프로필 최신 ({N}일 전 스캔) — context 생략" |
-| context 완료 (stale) | "⚠️ 프로필이 오래됨 (코드 변경 감지) — 업데이트 권장 (선택사항)" |
-| scenario 완료 | "✅ 활성 시나리오 있음 ({scenario_name}) — scenario 생략" |
-| test 완료 | "✅ 최근 테스트 결과 있음 (exp_xxx) — 바로 평가 진행" |
+| Status | Message |
+|--------|---------|
+| setup (installation) complete | "✅ fluxloop-cli installed (vX.X.X) — skipping installation step" |
+| setup (project) complete | "✅ Project connected (proj_xxx) — skipping setup" |
+| context complete (up-to-date) | "✅ Agent profile is current (scanned {N} days ago) — skipping context" |
+| context complete (stale) | "⚠️ Profile is outdated (code changes detected) — update recommended (optional)" |
+| scenario complete | "✅ Active scenario exists ({scenario_name}) — skipping scenario" |
+| test complete | "✅ Recent test results exist (exp_xxx) — proceeding directly to evaluation" |

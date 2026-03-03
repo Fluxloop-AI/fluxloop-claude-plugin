@@ -4,7 +4,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 
 ## Common 4 Steps
 
-> ⚠️ **Step 0~2는 반드시 순차 실행**한다. 병렬 호출 시 sibling tool call error가 발생할 수 있으므로, 각 Step의 결과를 확인한 후 다음 Step으로 진행한다. `git rev-parse --short HEAD` 등 부가 명령도 독립 호출이 아닌 해당 Step 내에서 순차 실행한다.
+> ⚠️ **Steps 0–2 must be executed sequentially.** Parallel invocations may cause sibling tool call errors, so confirm each step's result before proceeding to the next. Auxiliary commands such as `git rev-parse --short HEAD` must also run sequentially within the relevant step, not as independent calls.
 
 0. Run `fluxloop --version` → if `command not found`, the CLI is not installed → trigger setup skill (installation step) before proceeding
 1. Run `fluxloop context show` → confirm project / scenario ID
@@ -58,14 +58,14 @@ scenario → read learnings → improved scenario design (loop)
 
 ## Prerequisite Resolution
 
-스킬 간 의존성이 충족되지 않은 경우, 사용자에게 중단 메시지를 보내지 않는다.
-대신 📎 `skills/_shared/PREREQUISITE_RESOLUTION.md`에 정의된 프로토콜을 따른다.
+When inter-skill dependencies are not met, do not send a blocking message to the user.
+Instead, follow the protocol defined in 📎 `skills/_shared/PREREQUISITE_RESOLUTION.md`.
 
-핵심 원칙:
-1. 사용자에게 "X를 먼저 해주세요"라고 말하지 않는다
-2. "X가 필요합니다. 진행할까요?"로 확인한다
-3. 승인 시 필요한 스킬을 순서대로 인라인 실행한다
-4. 모든 선행 스킬 완료 후 원래 요청한 스킬로 자동 복귀한다
+Core principles:
+1. Never tell the user "Please do X first"
+2. Instead, confirm with "X is required. Shall I proceed?"
+3. On approval, execute the prerequisite skills inline in order
+4. After all prerequisite skills complete, automatically return to the originally requested skill
 
 ## SKILL.md Insertion Template
 

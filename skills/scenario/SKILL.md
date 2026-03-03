@@ -2,8 +2,9 @@
 name: fluxloop-scenario
 description: |
   Use for creating test scenarios, contracts, and agent wrapper setup.
+  Combines code-flow analysis with Intent Discovery to extract contracts that reflect user intent.
   Frequency: when test objectives change or new scenarios are needed. Reuses existing scenarios otherwise.
-  Keywords: scenario, create scenario, init, contract, wrapper, agent setup
+  Keywords: scenario, create scenario, init, contract, contract extraction, intent discovery, wrapper, agent setup
 
   Auto-activates on requests like:
   - "create a scenario", "init scenario"
@@ -12,11 +13,11 @@ description: |
 
 # FluxLoop Scenario Skill
 
-**Scenario-First**: Agent profile check → Scenario init → Contract creation → Wrapper setup → Test ready
+**Scenario-First**: Agent profile check → Scenario init → Code-based scenario proposal → Intent Discovery → Contract extraction → Setup
 
 ## Output Format
 
-> 📎 All user-facing output must follow: read skills/_shared/OUTPUT_FORMAT.md
+> Read skills/_shared/OUTPUT_FORMAT.md
 
 ## Context Protocol
 
@@ -30,26 +31,28 @@ description: |
    - Local: save to `.fluxloop/test-memory/test-strategy.md`
 4. On completion: verify `test-strategy.md` is current for the test skill
 
-> 📎 Stale detection: read skills/_shared/CONTEXT_PROTOCOL.md
-> 📎 Collection procedure (for inline refresh): read skills/_shared/CONTEXT_COLLECTION.md
+> Stale detection: read skills/_shared/CONTEXT_PROTOCOL.md
+> Collection procedure (for inline refresh): read skills/_shared/CONTEXT_COLLECTION.md
 
 ## Prerequisite
 
 Run `fluxloop context show` first:
-- ✅ Project selected + `.fluxloop/test-memory/agent-profile.md` exists → proceed
-- ❌ No project (setup missing) → Prerequisite Resolution (📎 read skills/_shared/PREREQUISITE_RESOLUTION.md):
+- Project selected + `.fluxloop/test-memory/agent-profile.md` exists → proceed
+- No project (setup missing) → Prerequisite Resolution (read skills/_shared/PREREQUISITE_RESOLUTION.md):
   - "Both project setup and agent analysis are required. Proceed with setup → context in order?"
   - Approved:
-    1. 📎 Run `skills/setup/SKILL.md` inline → "✅ Setup complete."
-    2. 📎 Run `skills/context/SKILL.md` inline → "✅ Context complete. Continuing with scenario."
+    1. Run `skills/setup/SKILL.md` inline → "Setup complete."
+    2. Run `skills/context/SKILL.md` inline → "Context complete. Continuing with scenario."
     → return to Step 1
   - Denied: stop
-- ❌ Project selected but no agent-profile.md (context missing) → Prerequisite Resolution:
+- Project selected but no agent-profile.md (context missing) → Prerequisite Resolution:
   - "Agent analysis is required. Would you like to run context first?"
-  - Approved: 📎 Run `skills/context/SKILL.md` inline → on completion return to Step 1
+  - Approved: Run `skills/context/SKILL.md` inline → on completion return to Step 1
   - Denied: stop
 
 ## Workflow
+
+> Each Step must be executed sequentially. Do not batch Bash/Read calls in parallel. (See CONTEXT_PROTOCOL.md)
 
 ### Step 1: Context Load + Stale Detection
 
@@ -63,7 +66,7 @@ Run `fluxloop context show` first:
 - Read `.fluxloop/test-memory/learnings.md` (if exists):
   - Incorporate previous insights into scenario design
   - Display: "Previous learnings found: {summary}"
-- Understand agent characteristics → use in Step 3 for scenario recommendations
+- Understand agent characteristics → use in Step 3 for scenario proposals
 
 ### Step 2: Scenario Initialization
 
@@ -74,37 +77,126 @@ fluxloop init scenario <name>
 - Naming rules:
   - Folder name: English kebab-case only (e.g., `order-bot`)
   - Suggest 3 name candidates based on agent characteristics, allow custom input
-- ⚠️ Common mistake: "Run from workspace root, not home directory. Check `pwd` and `fluxloop context show`."
+- Common mistake: "Run from workspace root, not home directory. Check `pwd` and `fluxloop context show`."
 
-### Step 3: Scenario Recommendation
+### Step 3: Code-Flow Based Scenario Proposal
 
-Suggest 3 scenarios based on `agent-profile.md`:
+Read `agent-profile.md` and the actual codebase to propose specific, code-flow-based scenario candidates — NOT generic categories like "Happy Path", "Edge Cases", or "Advanced".
 
-| # | Type | Description |
-|---|------|-------------|
-| 1 | **Happy Path** | Core feature verification |
-| 2 | **Edge Cases** | Exception/boundary handling |
-| 3 | **Advanced** | Multi-turn or domain-specific |
+**Input**: Agent analysis from `agent-profile.md` (system prompt, tool list, key features, code flow)
 
-> 💡 **Always explain each type to the user:**
-> - **Happy Path**: Verifies the agent's core functionality works correctly. E.g., "Scenario where {agent} performs {key function} without issues"
-> - **Edge Cases**: Verifies the ability to handle exceptions and boundary conditions. E.g., "Behavior with invalid inputs, empty values, special conditions"
-> - **Advanced**: Verifies multi-turn conversations or domain-specific scenarios. E.g., "Complex requests, consecutive conversations requiring context retention"
->
-> Tailor explanations with specific examples based on agent characteristics from `agent-profile.md`.
+**Analysis process**:
+- Trace the agent's code flow: input → processing → output
+- Identify specific behavioral checkpoints that need verification
+- If `learnings.md` exists, reflect previous test insights in proposals
 
-- Present 3 options + "Custom input" → user selects
-- If `learnings.md` insights exist, reflect them in recommendations
-  - Example: "Previous tests showed weak edge case handling" → prioritize Edge Cases
-- After selection: specify display name (any language allowed)
+**Output**: Present 3–5 scenario candidates in a table:
 
-### Step 4: Language Selection
+| # | Scenario | What code flow it verifies |
+|---|----------|---------------------------|
+| 1 | {concrete scenario} | {which code path / behavior is tested} |
+| 2 | {concrete scenario} | {which code path / behavior is tested} |
+| ... | ... | ... |
+
+**Guidelines for scenario proposals** (adapt to the agent type):
+- Data analysis agent: "Returns correct results for user query", "Gracefully rejects request for nonexistent column"
+- RAG agent: "Synthesizes answers from multiple documents", "Handles questions with no relevant documents"
+- Chatbot: "Maintains context across multi-turn conversation", "Handles off-topic requests appropriately"
+
+**User interaction**:
+- User selects from the candidates or enters a custom scenario
+- After selection: specify a display name (any language allowed)
+
+> Scenarios must describe **what the agent does** in a specific code flow, not abstract test categories.
+> Overly specific details (table names, column names, etc.) belong in the contract (Step 4), not the scenario level.
+
+### Step 4: Intent Discovery & Contract Extraction
+
+The selected scenario 1-liner often contains hidden ambiguity. This step uses the Intent Discovery framework to surface implicit expectations and extract precise contracts through structured dialogue.
+
+> **What is a Contract?** A behavioral rule the agent must follow. Each contract has a type (`must`, `must_not`, `should`, `may`) and a category (`grounding`, `quality`, `safety`, `ux`, `compliance`). Contracts are the foundation for automated test evaluation.
+
+#### 4-A. Initial Analysis (agent performs internally — no user confirmation needed)
+
+Analyze the scenario 1-liner along three dimensions:
+
+| Classification | Definition | Handling |
+|---------------|------------|----------|
+| **clear/explicit** | Directly translatable from sentence to code behavior | Agent fills in automatically. No user confirmation needed. |
+| **unclear/explicit** | Stated in the sentence but ambiguous in meaning | Present specific behavioral options (2–4 choices) for user to select. |
+| **unclear/implicit** | Not mentioned, but logically relevant when considering the code flow | Ask "What about this case?" to surface edge cases the user hasn't considered. |
+
+Scope: analysis is limited to **agent behavior level**. Do not expand into user profiles, business context, or other external concerns.
+
+#### 4-B. Conversational Resolution
+
+Resolve ambiguities in order: **unclear/explicit first → unclear/implicit second**.
+
+**Resolving unclear/explicit items**:
+- For each ambiguous expression, present 2–4 concrete behavioral options
+- User selects one or describes their own expectation
+
+**Resolving unclear/implicit items**:
+- Ask "What should the agent do in this case?" to naturally expose edge cases
+- Limit to 2–3 questions maximum
+
+**Worst case question** (always include):
+- "What's the worst thing the agent could do in this scenario?"
+- This directly elicits `must_not` contracts
+
+**Conversation flow control**:
+- If there are 3+ unclear/explicit items: resolve the top 2–3 first, then set defaults for the rest and confirm: "I've set these defaults — anything you'd like to change?"
+- Limit unclear/implicit questions to 2–3 maximum (worst case question is always included)
+- The entire Intent Discovery conversation should converge within **2–3 rounds**
+
+#### 4-C. Case Quality Determination
+
+For each resolved item, determine the expectation level:
+
+| Case | Meaning | → Contract Type |
+|------|---------|-----------------|
+| **fair case** | Minimum acceptable behavior | `must` / `must_not` |
+| **good case** | Expected behavior | `should` |
+| **best case** | Ideal behavior | `may` |
+
+In practice: the agent proposes fair/good/best together for each item, and the user confirms or adjusts the level (e.g., "this should be must, not should").
+
+#### 4-D. Contract Assembly
+
+Compile the conversation results into a contract table:
+
+| type | category | contract |
+|------|----------|----------|
+| `must` | grounding | {specific contract content} |
+| `must_not` | safety | {specific contract content} |
+| `should` | quality | {specific contract content} |
+| `may` | ux | {specific contract content} |
+
+**Contract types**: `must`, `must_not`, `should`, `may`
+**Categories**: `grounding`, `quality`, `safety`, `ux`, `compliance` (agent classifies as appropriate)
+
+Present the assembled contract table to the user for final confirmation.
+
+### Step 5: Contract Save (Dual Write — Local First)
+
+**Local save**:
+- Save the refined scenario description and contracts to `.fluxloop/test-memory/test-strategy.md`
+- Follow the existing `test-strategy.md` template format (see `test-memory-template/test-strategy.md`)
+- Populate "Active Scenarios" with: scenario name, goal (refined description), status
+- Add a "Contract Summary" section with: contract count, type distribution, key contracts summary
+
+**Server sync** (placeholder):
+- Use `fluxloop scenarios create --name "..." --goal "..."` with the refined description as `--goal`
+- Full contract upload to server: TBD (update this step when server contract API is finalized)
+- For now: include a placeholder note — "Server contract sync will be added when the API is available"
+
+### Step 6: Language Selection
 
 - Select language for scenario generation
 - If project-level language is already set → suggest as default, allow override
 - Apply to `fluxloop scenarios create --name "..." --goal "..."` command
 
-### Step 5: API Key Setup
+### Step 7: API Key Setup
 
 - Check `.fluxloop/.env` → if exists, skip
 - If missing: `fluxloop apikeys create`
@@ -113,53 +205,25 @@ Suggest 3 scenarios based on `agent-profile.md`:
   - OpenAI: `OPENAI_API_KEY=sk-xxx`
   - Anthropic: `ANTHROPIC_API_KEY=sk-ant-xxx`
 
-### Step 6: Contract Creation + Strategy Save (Dual Write)
-
-> 💡 **What is a Contract?** Rules (YAML) that define the expected behavior an agent must follow in each scenario. E.g., "Must include the amount when confirming an order." The server auto-generates them, and users can edit them in the web app.
-
-**(Server)**:
-
-```bash
-fluxloop scenarios create --name "Order Accuracy Test" --goal "..."
-fluxloop scenarios refine --scenario-id <id>
-fluxloop sync pull --scenario <name>
-```
-
-After `scenarios refine` — **must include scenario URL in output**:
-```
-✅ Contracts → N generated 🔗 https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}
-📋 You can review and edit contracts at the link above.
-```
-
-**(Local)**: Save to `.fluxloop/test-memory/test-strategy.md` (format: `test-memory-template/test-strategy.md`)
-
-Fields to populate:
-- Active Scenarios: scenario name, ID, goal, status=active
-- Test Objectives: extracted from scenario goal
-- Contract Summary: contract count, key coverage
-- Evaluation Criteria: set based on scenario characteristics (default: accuracy, completeness, relevance)
-- Test Configuration: turn mode (TBD), input count (TBD), wrapper path
-
-> **Required link output**: After scenario creation, extract `scenario_id` and `project_id` from CLI output to construct the URL.
-> URL pattern: `https://alpha.app.fluxloop.ai/simulate/scenarios/{scenario_id}?project={project_id}`
-
-### Step 7: Wrapper Setup
+### Step 8: Wrapper Setup
 
 Basic flow:
 1. Determine if wrapper is needed (based on agent type)
 2. If needed → create `wrapper.py` + update `simulation.yaml`
 3. Debug test: `python -c "from agents.wrapper import run; print(run('test'))"`
 
-> 📎 Wrapper setup detail: read skills/scenario/references/wrapper-guide.md
+> Wrapper setup detail: read skills/scenario/references/wrapper-guide.md
 
-### Interactive Checkpoints
+## Interactive Checkpoints
 
 | Step | Interactive | Auto |
 |------|------------|------|
-| Step 3: Scenario selection | Ask (required) | Auto-select #1 |
-| Step 6: Contract review | URL only | URL only |
+| Step 3: Scenario selection | Ask (required) | — |
+| Step 4: Intent Discovery dialogue | Ask (required, 2–3 rounds) | — |
+| Step 4 end: Contract table confirmation | Ask (required) | — |
+| Step 6: Language selection | Ask | Use project default |
 
-> Max 1 required user response (scenario selection).
+> Min 2 required user interactions (scenario selection + contract confirmation).
 
 ## Error Handling
 
@@ -174,6 +238,7 @@ Basic flow:
 | Wrapper `ModuleNotFoundError` | Check `runner.target` in simulation.yaml, verify Python path |
 | Wrapper `TypeError: run() missing argument` | Ensure wrapper signature: `(input_text: str, metadata: dict = None)` |
 | Local path mismatch in context | `fluxloop scenarios select <id> --local-path <folder>` |
+| Intent Discovery does not converge | Summarize agreements so far and ask for confirmation: "Here's what we've agreed on so far. Shall we finalize this?" |
 
 ## Next Steps
 
@@ -191,17 +256,21 @@ Scenario ready. Available next action:
 | API key | `fluxloop apikeys create` |
 | Git hash | `git rev-parse --short HEAD` |
 
-> 📎 Full CLI reference: read skills/_shared/QUICK_REFERENCE.md
+> Full CLI reference: read skills/_shared/QUICK_REFERENCE.md
 
 ## Key Rules
 
-1. Always read `agent-profile.md` first — use agent characteristics for scenario recommendations
+1. Always read `agent-profile.md` first — use agent characteristics for scenario proposals
 2. Always check stale detection on `agent-profile.md` before proceeding
 3. Read `learnings.md` (if exists) to incorporate previous insights into scenario design
-4. Use the template from `test-memory-template/test-strategy.md` for output format
-5. Scenario folder names: English kebab-case only (`order-bot`)
-6. Display names: any language allowed
-7. Suggest 3 naming candidates, allow custom input
-8. Run `fluxloop init scenario` from workspace root (NOT home directory)
-9. Dual Write: server (`scenarios create/refine`) and local (`test-strategy.md`) at the same time
-10. On update: overwrite `test-strategy.md` entirely (not append)
+4. Scenario candidates must be code-flow-based. **Never use generic categories** (Happy Path, Edge Cases, Advanced)
+5. Intent Discovery analysis scope is limited to **agent behavior level** — do not expand into user profiles or business context
+6. Always include the **worst case question** during Intent Discovery to elicit `must_not` contracts
+7. Intent Discovery conversation must converge within **2–3 rounds**
+8. Use the template from `test-memory-template/test-strategy.md` for output format
+9. Scenario folder names: English kebab-case only (`order-bot`)
+10. Display names: any language allowed
+11. Suggest 3 naming candidates, allow custom input
+12. Run `fluxloop init scenario` from workspace root (NOT home directory)
+13. Dual Write: server (`scenarios create`) and local (`test-strategy.md`) at the same time
+14. On update: overwrite `test-strategy.md` entirely (not append)
