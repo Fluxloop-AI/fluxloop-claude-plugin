@@ -76,7 +76,7 @@ Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal men
 Now preparing the elements needed to refine this scenario.
 
 🟢 Scenario topic: {selected scenario topic description}
-🔴 Scenario analysis ← starting here
+🟡 Scenario analysis ← starting here
 🔴 Test rules
 
 ---
@@ -107,7 +107,7 @@ Shown at the beginning of Step 4, after mode selection.
 
 ```
 🟢 Scenario topic: {selected scenario topic description}
-🔴 Scenario analysis ← current
+🟡 Scenario analysis ← current
 🔴 Test rules
 
 ---
@@ -126,9 +126,11 @@ Shown when Step 5 (Exploration) completes and Step 6 (Decision Integration) begi
 ### Good Example ✅
 
 ```
+All items have been defined. Now moving on to test rules.
+
 🟢 Scenario topic: {selected scenario topic description}
 🟢 Scenario analysis
-🔴 Test rules ← current
+🟡 Test rules ← current
 
 ---
 

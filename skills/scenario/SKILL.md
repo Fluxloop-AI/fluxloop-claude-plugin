@@ -55,27 +55,37 @@ description: |
 
 **Principles**:
 - Minimize cognitive load. The user didn't come here to think about folder names — derive them silently from agent-profile.
-- After init, the user needs **three things**: what was created (folder path), where they are in the process (status indicators), and what's ahead (roadmap). Without this, the next step feels abrupt.
-- The roadmap uses **user-facing labels** that don't map 1:1 to internal steps. The user doesn't need to know about internal step boundaries.
-
-**User-facing label → Internal step mapping:**
-
-| User-facing label | Internal steps |
-|---|---|
-| 🟢 Scenario topic | Step 3 (already completed) |
-| 🔴 Scenario analysis | Step 4 (Breakdown) + Step 5 (Exploration) |
-| 🔴 Test rules | Step 6 (Integration) + Step 7 (Extraction) + Step 8 (Save) |
-
-Status updates: 🔴 → 🟢 when the corresponding internal steps are all completed.
+- Orient the user: show where they are now and what's coming next, so the workflow feels predictable rather than abrupt.
 
 **Procedure**:
 - **Internal**: derive folder name (English kebab-case) and display name from agent-profile + selected scenario
 - Run `fluxloop init scenario <name>`
-- **Display**: output the scenario roadmap EXACTLY as defined in output-examples.md § "Scenario Roadmap". Substitute only the placeholders ({scenario-name}, {folder-path}, {selected scenario topic}). Do NOT rearrange, add tables, or change the structure in any way.
+- **Display**: output the following template EXACTLY. Replace only {placeholders}. Do NOT use tables, do NOT rearrange.
+
+```
+🎞️ {scenario-name} scenario has been created.
+  > 📂 {folder-path}
+
+Now preparing the elements needed to refine this scenario.
+
+🟢 Scenario topic: {selected scenario topic}
+🟡 Scenario analysis ← starting here
+🔴 Test rules
+
+---
+
+Based on the scenario topic above,
+we'll refine this scenario through the following steps:
+
+1) Scenario analysis: identify what situations to test
+2) Test rule discussion: decide how the agent should behave in each situation
+3) Test rule finalization & save: organize decisions into rules and save
+```
 
 - **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
   - If Interactive: Step 5 runs one item at a time
   - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
+- **Internal note**: Status colors: 🟢 complete / 🟡 in progress / 🔴 pending. "Scenario analysis" covers Step 4 + Step 5 — mark 🟡 at Step 4, mark 🟢 when Step 5 completes. "Test rules" covers Step 6 + Step 7 + Step 8 — mark 🟡 at Step 6, mark 🟢 when Step 8 completes.
 
 ### Step 3: Scenario Proposal
 
@@ -114,7 +124,22 @@ Status updates: 🔴 → 🟢 when the corresponding internal steps are all comp
 > Read references/internal-framework.md (ambiguity identification + classification — do NOT expose terms to user)
 > Read references/output-examples.md § "Scenario Breakdown"
 
-- **Display**: output the step transition roadmap EXACTLY as defined in output-examples.md § "Step Transition: Scenario Analysis". Substitute only the placeholder ({selected scenario topic}). Do NOT rearrange or change the structure.
+- **Display**: output the following EXACTLY. Replace only {placeholders}. Do NOT use tables.
+
+```
+Now let's analyze the scenario and identify what needs to be defined.
+
+🟢 Scenario topic: {selected scenario topic}
+🟡 Scenario analysis ← current
+🔴 Test rules
+
+---
+
+Here are the items to define for this scenario:
+```
+
+Then present the Define blocks immediately after.
+
 - **Internal**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names)
 - For ✅ confirmed items: use information already available from agent-profile. Only do targeted code lookup if a specific item genuinely cannot be confirmed without it.
 - **Output**: present each topic as `Define #N` with its confirmed (✅) and to-discuss (❓) sub-items grouped together
@@ -154,7 +179,20 @@ Status updates: 🔴 → 🟢 when the corresponding internal steps are all comp
 
 > Read references/output-examples.md § "Decision Integration"
 
-- **Display**: output the step transition roadmap EXACTLY as defined in output-examples.md § "Step Transition: Test Rules". Substitute only the placeholder ({selected scenario topic}). Do NOT rearrange or change the structure.
+- **Display**: output the following EXACTLY. Replace only {placeholders}. Do NOT use tables.
+
+```
+All items have been defined. Now moving on to test rules.
+
+🟢 Scenario topic: {selected scenario topic}
+🟢 Scenario analysis
+🟡 Test rules ← current
+
+---
+
+Scenario analysis is complete.
+Now let's turn the decisions into test rules.
+```
 - Consolidate decisions using 1-line title + blockquote (NO tables, NO metadata)
 - End with confirmation prompt — corrections reopen specific items
 
