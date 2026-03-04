@@ -15,6 +15,7 @@ Skills automatically create and manage these files. You may also edit them manua
 | `prompt-versions.md` | Prompt version history | prompt-compare | evaluate |
 | `results-log.md` | Cumulative test results log | test, evaluate | all |
 | `learnings.md` | Insights and improvement notes | evaluate | scenario, prompt-compare |
+| `scenario-planning.md` | Working document for intent discovery exploration | scenario | scenario (internal) |
 
 ## Notes
 

@@ -112,70 +112,134 @@ Read `agent-profile.md` and the actual codebase to propose specific, code-flow-b
 
 ### Step 4: Intent Discovery & Contract Extraction
 
-The selected scenario 1-liner often contains hidden ambiguity. This step uses the Intent Discovery framework to surface implicit expectations and extract precise contracts through structured dialogue.
+The selected scenario 1-liner often contains hidden ambiguity. This step uses a **document-driven, 4-phase progressive exploration** to surface implicit expectations and extract precise contracts through structured dialogue.
 
 > **What is a Contract?** A behavioral rule the agent must follow. Each contract has a type (`must`, `must_not`, `should`, `may`) and a category (`grounding`, `quality`, `safety`, `ux`, `compliance`). Contracts are the foundation for automated test evaluation.
 
-#### 4-A. Initial Analysis (agent performs internally — no user confirmation needed)
-
-Analyze the scenario 1-liner along three dimensions:
-
-| Classification | Definition | Handling |
-|---------------|------------|----------|
-| **clear/explicit** | Directly translatable from sentence to code behavior | Agent fills in automatically. No user confirmation needed. |
-| **unclear/explicit** | Stated in the sentence but ambiguous in meaning | Present specific behavioral options (2–4 choices) for user to select. |
-| **unclear/implicit** | Not mentioned, but logically relevant when considering the code flow | Ask "What about this case?" to surface edge cases the user hasn't considered. |
+**Working Document**: `scenario-planning.md` serves as the shared memory, context anchor, and to-do tracker throughout Phases 1–4. Create it at `.fluxloop/test-memory/scenario-planning.md` using the template from `test-memory-template/scenario-planning.md`. Update it after every phase. This document prevents context loss between turns and allows the user to review progress at any time.
 
 Scope: analysis is limited to **agent behavior level**. Do not expand into user profiles, business context, or other external concerns.
 
-#### 4-B. Conversational Resolution
+#### Phase 1: Item Extraction
 
-Resolve ambiguities in order: **unclear/explicit first → unclear/implicit second**.
+Analyze the scenario 1-liner and extract all behavioral items into three classifications:
 
-**Resolving unclear/explicit items**:
-- For each ambiguous expression, present 2–4 concrete behavioral options
-- User selects one or describes their own expectation
+| Classification | Definition | Discrimination Criteria | Handling |
+|---------------|------------|------------------------|----------|
+| **clear/explicit** | Directly translatable from sentence to code behavior | The sentence unambiguously specifies what the agent should do — no interpretation needed | Agent fills in automatically via agent-profile |
+| **unclear/explicit** | Stated in the sentence but ambiguous in meaning | The sentence mentions this behavior but the exact expectation is open to multiple interpretations | Present specific behavioral options (2–4 choices) for user to select |
+| **unclear/implicit** | Not mentioned, but logically relevant when considering the code flow | Not in the sentence, but any experienced tester would ask about it given the agent's code flow | Ask "What about this case?" to surface edge cases |
 
-**Resolving unclear/implicit items**:
-- Ask "What should the agent do in this case?" to naturally expose edge cases
-- Limit to 2–3 questions maximum
+For each item, determine its resolution strategy:
 
-**Worst case question** (always include):
-- "What's the worst thing the agent could do in this scenario?"
-- This directly elicits `must_not` contracts
+| Strategy | When to Use | Action |
+|----------|------------|--------|
+| **agent-profile auto-fill** | Answer is derivable from agent-profile.md or code analysis | Agent fills in the definition and confirms with user |
+| **user question** | Multiple valid interpretations exist | Present 2–4 concrete behavioral options for user to choose |
+| **target exploration** | Rare: requires deep code tracing or domain expertise | Flag for deeper investigation in Phase 2 |
 
-**Conversation flow control**:
-- If there are 3+ unclear/explicit items: resolve the top 2–3 first, then set defaults for the rest and confirm: "I've set these defaults — anything you'd like to change?"
-- Limit unclear/implicit questions to 2–3 maximum (worst case question is always included)
-- The entire Intent Discovery conversation should converge within **2–3 rounds**
+**Agent actions**:
+1. Classify all items from the scenario 1-liner
+2. Determine resolution strategy for each item
+3. Order items: clear/explicit → unclear/explicit → unclear/implicit
+4. Create `scenario-planning.md` with all extracted items
+5. Present a summary to the user: item count per classification, resolution strategy overview
 
-#### 4-C. Case Quality Determination
+> ⚠️ **STOP**: Create the file and present the summary. STOP and wait for user acknowledgment before proceeding to Phase 2.
 
-For each resolved item, determine the expectation level:
+#### Phase 2: Deep Exploration per Item (×N)
 
-| Case | Meaning | → Contract Type |
-|------|---------|-----------------|
-| **fair case** | Minimum acceptable behavior | `must` / `must_not` |
+Explore each item one at a time, in the order established in Phase 1. Each item goes through 4 sub-steps:
+
+**2-1. Clear Definition**
+- Establish the precise behavioral definition for this item
+- For agent-profile auto-fill items: present the auto-filled definition for quick confirmation
+
+**2-2. Variant Expansion**
+- Expand into concrete cases and variations (present as a table)
+- Example: "User asks for column X" → variants: column exists, column doesn't exist, column name is misspelled, etc.
+
+**2-3. Upper-Level Policy Questions**
+- From the variants, identify design tensions that require policy decisions
+- Formulate as clear policy questions: "When X happens, should the agent do A or B?"
+- Include the **worst case question** when relevant: "What's the worst thing the agent could do here?"
+
+**2-4. Confirm & Update**
+- User confirms definitions, selects variants, answers policy questions
+- Update `scenario-planning.md` with resolved information
+
+> ⚠️ **Critical Principles**:
+> - **ONE item per turn. Do NOT bundle multiple items.**
+> - **For clear/explicit items**: auto-fill definition + quick confirm. No deep exploration needed — skip 2-2 and 2-3.
+> - **If user says "enough" or "this is enough"**: proceed directly to Phase 3 with items explored so far. Set agent-profile-based defaults for remaining items.
+> - **Retroactive updates allowed**: later insights may update earlier items — update the document accordingly.
+
+#### Phase 3: Integration & Consolidation
+
+After all items are explored (or user signals "enough"), integrate findings into a coherent picture:
+
+**Full Variant Map**: consolidate all variants across items
+
+| Variant Type | Example | Related Items |
+|-------------|---------|---------------|
+| {type} | {concrete example} | {item names} |
+
+**Cross-Cutting Policy Summary**: consolidate all policy decisions
+
+| Policy | Decision | Related Items |
+|--------|----------|---------------|
+| {description} | {resolved decision} | {item names} |
+
+**Policy Conflict Resolution**: if policies from different items conflict:
+- Present both sides explicitly
+- Provide a recommendation with reasoning
+- Ask the user to confirm the resolution
+
+**Risk Behavior List**: collect all identified risk behaviors from Phase 2
+
+Record all integration results in the "Intermediate Results" section of `scenario-planning.md`.
+
+> ⚠️ **STOP**: Present integration results and wait for user confirmation before proceeding to Phase 4.
+
+#### Phase 4: Expectation Level → Contract
+
+Map each resolved item to a contract with an expectation level:
+
+| Expectation | Meaning | → Contract Type |
+|------------|---------|-----------------|
+| **worst case** | Behavior that must never happen | `must_not` |
+| **fair case** | Minimum acceptable behavior | `must` |
 | **good case** | Expected behavior | `should` |
 | **best case** | Ideal behavior | `may` |
 
-In practice: the agent proposes fair/good/best together for each item, and the user confirms or adjusts the level (e.g., "this should be must, not should").
+**Contract Presentation Format** — group by type with emoji indicators:
 
-#### 4-D. Contract Assembly
+**🔴 MUST**
+- **C{N}. {title}** [{emoji}{category}]
+  > {explanation from agent's behavioral perspective, including violation conditions}
 
-Compile the conversation results into a contract table:
+**⛔ MUST NOT**
+- **C{N}. {title}** [{emoji}{category}]
+  > {explanation from agent's behavioral perspective, including violation conditions}
 
-| type | category | contract |
-|------|----------|----------|
-| `must` | grounding | {specific contract content} |
-| `must_not` | safety | {specific contract content} |
-| `should` | quality | {specific contract content} |
-| `may` | ux | {specific contract content} |
+**🟡 SHOULD**
+- **C{N}. {title}** [{emoji}{category}]
+  > {explanation from agent's behavioral perspective, including violation conditions}
 
-**Contract types**: `must`, `must_not`, `should`, `may`
-**Categories**: `grounding`, `quality`, `safety`, `ux`, `compliance` (agent classifies as appropriate)
+**🟢 MAY**
+- **C{N}. {title}** [{emoji}{category}]
+  > {explanation from agent's behavioral perspective, including violation conditions}
 
-Present the assembled contract table to the user for final confirmation.
+**Category emoji mapping**: grounding 🎯, quality ✨, safety 🛡️, ux 👤, compliance 📋
+
+**Formatting rules**:
+- Write every contract from the **agent's behavioral perspective** (e.g., "The agent must..." not "The system should...")
+- Include explicit **violation conditions** for each contract
+- `must` contracts must be written at an **automated-test-verifiable level** — precise enough that a test can unambiguously determine pass/fail
+
+Record final contracts in the "Contracts" section of `scenario-planning.md`.
+
+> ⚠️ **STOP**: Present contracts for final confirmation before proceeding to Step 5.
 
 ### Step 5: Contract Save (Dual Write — Local First)
 
@@ -219,11 +283,13 @@ Basic flow:
 | Step | Interactive | Auto |
 |------|------------|------|
 | Step 3: Scenario selection | Ask (required) | — |
-| Step 4: Intent Discovery dialogue | Ask (required, 2–3 rounds) | — |
-| Step 4 end: Contract table confirmation | Ask (required) | — |
+| Phase 1: Item extraction summary | Inform (user acknowledges) | — |
+| Phase 2: Per-item exploration | Ask (required, per item) | clear/explicit: auto-fill + confirm |
+| Phase 3: Integration confirmation | Ask (required) | Agent performs consolidation |
+| Phase 4: Contract confirmation | Ask (required) | — |
 | Step 6: Language selection | Ask | Use project default |
 
-> Min 2 required user interactions (scenario selection + contract confirmation).
+> Min 3 required user interactions (scenario selection + at least 1 item exploration + contract confirmation).
 
 ## Error Handling
 
@@ -238,7 +304,7 @@ Basic flow:
 | Wrapper `ModuleNotFoundError` | Check `runner.target` in simulation.yaml, verify Python path |
 | Wrapper `TypeError: run() missing argument` | Ensure wrapper signature: `(input_text: str, metadata: dict = None)` |
 | Local path mismatch in context | `fluxloop scenarios select <id> --local-path <folder>` |
-| Intent Discovery does not converge | Summarize agreements so far and ask for confirmation: "Here's what we've agreed on so far. Shall we finalize this?" |
+| Intent Discovery taking too long | Detect user fatigue → summarize explored items, set agent-profile-based defaults for remaining items, proceed to Phase 3 |
 
 ## Next Steps
 
@@ -266,7 +332,7 @@ Scenario ready. Available next action:
 4. Scenario candidates must be code-flow-based. **Never use generic categories** (Happy Path, Edge Cases, Advanced)
 5. Intent Discovery analysis scope is limited to **agent behavior level** — do not expand into user profiles or business context
 6. Always include the **worst case question** during Intent Discovery to elicit `must_not` contracts
-7. Intent Discovery conversation must converge within **2–3 rounds**
+7. Intent Discovery explores ONE item at a time in depth. Do NOT dump all analysis questions at once. Use `scenario-planning.md` as the working document throughout.
 8. Use the template from `test-memory-template/test-strategy.md` for output format
 9. Scenario folder names: English kebab-case only (`order-bot`)
 10. Display names: any language allowed
@@ -274,3 +340,7 @@ Scenario ready. Available next action:
 12. Run `fluxloop init scenario` from workspace root (NOT home directory)
 13. Dual Write: server (`scenarios create`) and local (`test-strategy.md`) at the same time
 14. On update: overwrite `test-strategy.md` entirely (not append)
+15. Resolution strategy: agent-profile auto-fill first → user question → target exploration (exceptional)
+16. Phase 2 clear/explicit items: auto-fill and quick confirm. Do NOT deep-explore clear items.
+17. If user says "this is enough", proceed directly to Phase 3.
+18. `scenario-planning.md` is an intermediate document. Final contracts go to `test-strategy.md` in Step 5.
