@@ -36,9 +36,11 @@ Which situation should we test?
      > and what kind of analysis are all unspecified.
 
   Above are initial proposals based on the agent profile.
-  Already have a specific situation in mind? Feel free to describe it.
-  Or should I analyze the codebase more deeply for more targeted proposals?
 ```
+
+Then use `AskUserQuestion` with up to 5 proposed scenarios as selectable options (use all slots for scenarios, no extra options).
+
+After the AskUserQuestion, add a text note: "If none of these fit, let me know — I can dig deeper into the codebase for more targeted proposals, or you can describe your own scenario."
 
 ### Bad Example ❌
 
@@ -61,7 +63,7 @@ Please select one of the following:
   - Request codebase analysis — for more targeted proposals based on actual code
 ```
 
-Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal menu. The good example achieves the same three options ("select one", "describe your own", "request deeper analysis") in two casual lines at the end — no bullet list, no formal "please select".
+Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal menu. Use `AskUserQuestion` tool instead of inline option lists.
 
 ---
 
@@ -75,26 +77,18 @@ Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal men
 
 Now preparing the elements needed to refine this scenario.
 
-🟢 Scenario topic: {selected scenario topic description}
-🟡 Scenario analysis ← starting here
-🔴 Test rules
-
----
-
-Based on the scenario topic above,
-we'll refine this scenario through the following steps:
-
-1) Scenario analysis: identify what situations to test
-2) Test rule discussion: decide how the agent should behave in each situation
-3) Test rule finalization & save: organize decisions into rules and save
+🟢 Scenario Topic — just decided above
+🔴 Scenario Analysis — identify and define the key elements
+🔴 Test Rules — decide how the agent should behave
 ```
+
+Note: Inline descriptions appear only in Step 2 (first exposure). All subsequent roadmap displays show labels only.
 
 After the template above, use `AskUserQuestion` for mode selection with two options: "Interactive (default)" and "Automatic".
 
 Notes:
-- 🟢/🔴 status updates as steps complete (🔴 → 🟢)
-- The scenario topic line includes the actual selected scenario topic
-- The "← starting here" / "← current" marker shows current position
+- Status colors: 🟢 complete / 🟡 in progress / 🔴 pending
+- 🟡 itself indicates "current step" — no "← current" or "← starting here" markers needed
 - Mode selection uses AskUserQuestion tool, NOT inline text
 
 ---
@@ -106,9 +100,9 @@ Shown at the beginning of Step 4, after mode selection.
 ### Good Example ✅
 
 ```
-🟢 Scenario topic: {selected scenario topic description}
-🟡 Scenario analysis ← current
-🔴 Test rules
+🟢 Scenario Topic
+🟡 Scenario Analysis
+🔴 Test Rules
 
 ---
 
@@ -128,9 +122,9 @@ Shown when Step 5 (Exploration) completes and Step 6 (Decision Integration) begi
 ```
 All items have been defined. Now moving on to test rules.
 
-🟢 Scenario topic: {selected scenario topic description}
-🟢 Scenario analysis
-🟡 Test rules ← current
+🟢 Scenario Topic
+🟢 Scenario Analysis
+🟡 Test Rules
 
 ---
 
@@ -142,13 +136,25 @@ Now let's turn the decisions into test rules.
 
 ## 2. Scenario Breakdown (Step 4)
 
+Step 4 presents a compact overview — one line per topic. Detailed exploration happens in Step 5.
+
 ### Good Example ✅
 
 ```
-Here's what we need to define for this scenario:
+Here are the items to define for this scenario:
 
----
+Define #1. "Non-existent table/column": what counts as non-existent — made-up names, typos, or columns from other tables?
+Define #2. "How to handle": what the agent should do when it encounters a non-existent reference
+💡 Define #3. Mixed requests: how to handle queries that mix existing and non-existing columns
+```
 
+Then use `AskUserQuestion` to confirm:
+- "Proceed as-is (Recommended)"
+- "I need changes"
+
+### Bad Example ❌ (full detail dump)
+
+```
 Define #1. "Non-existent table/column"
 
   ✅ Scope is based on the current data schema
@@ -159,27 +165,9 @@ Define #1. "Non-existent table/column"
   ❓ What kinds of "non-existent" should we cover?
      > Completely made-up name / typo / column from a different
      > table — how far should we go?
-
----
-
-Define #2. "How to handle"
-
-  ❓ What does appropriate handling look like?
-     > Just refuse / show actual column list / suggest similar
-     > names / offer alternative queries
-
----
-
-💡 Define #3. Mixed requests
-
-  ❓ What if existing and non-existing columns are requested together?
-     > Reject the entire request / process what's possible and
-     > flag the rest
-
----
-
-Does this breakdown capture the right topics?
 ```
+
+Why bad: Front-loads all ✅/❓ details that belong in Step 5. The user gets overwhelmed before exploration even starts.
 
 ### Bad Example ❌ (status-first grouping)
 
@@ -189,17 +177,13 @@ Does this breakdown capture the right topics?
 ✅ Confirmed:
   • Target tables are orders, customers, products
   • The agent generates SQL to query data
-  • ...
 
 ❓ To discuss:
   • Meaning of "non-existent"
   • Scope of "appropriate handling"
-
-💡 Discovered:
-  • Mixed request handling
 ```
 
-Why bad: Groups by status, not by topic. User can't see the full picture of each concept — confirmed and to-discuss items for the same topic are split apart.
+Why bad: Groups by status, not by topic. User can't see the full picture of each concept.
 
 ### Bad Example ❌ (codebase facts)
 
@@ -210,13 +194,29 @@ Why bad: Groups by status, not by topic. User can't see the full picture of each
   • list_tables returns empty array
 ```
 
-Why bad: Lists technical facts gathered from the codebase instead of analyzing ambiguities in the scenario sentence. The user can't see how these relate to what they asked.
+Why bad: Lists technical facts gathered from the codebase instead of analyzing ambiguities in the scenario sentence.
 
 ---
 
 ## 4. Progress Tracker (Step 5)
 
+Use the 3-color roadmap with progress count embedded in the 🟡 line. This replaces the previous per-item list format.
+
 ### Good Example ✅
+
+```
+🟢 Scenario Topic
+🟡 Scenario Analysis (3/5) in progress...
+🔴 Test Rules
+```
+
+Rules:
+- The (N/M) count shows current/total items within the current step (starts at 1, not 0)
+- "in progress..." suffix on the 🟡 line indicates active work
+- No per-item breakdown — the current question is presented below the roadmap naturally
+- The roadmap MUST appear at the start of every turn during Step 5
+
+### Bad Example ❌ (per-item list)
 
 ```
 📋 Progress (3/5)
@@ -227,12 +227,7 @@ Why bad: Lists technical facts gathered from the codebase instead of analyzing a
   ⏳ Error message detail level
 ```
 
-Emoji rules:
-- 🔵 Completed (use 🔵 here, since ✅ is used for "confirmed items" in Step 4)
-- 💬 Currently discussing
-- ⏳ Waiting
-
-The tracker MUST appear at the start of every turn during Step 5.
+Why bad: Per-item list adds cognitive load every turn. The user already knows what's being discussed from the question itself. The roadmap should show position in the overall workflow, not repeat item details.
 
 ---
 

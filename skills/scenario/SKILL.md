@@ -60,7 +60,7 @@ description: |
 **Procedure**:
 - **Internal**: derive folder name (English kebab-case) and display name from agent-profile + selected scenario
 - Run `fluxloop init scenario <name>`
-- **Display**: output the following template EXACTLY. Replace only {placeholders}. Do NOT use tables, do NOT rearrange.
+- **Display**: output in this template format. Replace only {placeholders}. Do NOT use tables, do NOT rearrange.
 
 ```
 🎞️ {scenario-name} scenario has been created.
@@ -68,24 +68,17 @@ description: |
 
 Now preparing the elements needed to refine this scenario.
 
-🟢 Scenario topic: {selected scenario topic}
-🟡 Scenario analysis ← starting here
-🔴 Test rules
-
----
-
-Based on the scenario topic above,
-we'll refine this scenario through the following steps:
-
-1) Scenario analysis: identify what situations to test
-2) Test rule discussion: decide how the agent should behave in each situation
-3) Test rule finalization & save: organize decisions into rules and save
+🟢 Scenario Topic — just decided above
+🔴 Scenario Analysis — identify and define the key elements
+🔴 Test Rules — decide how the agent should behave
 ```
+
+Note: The inline descriptions are only shown here (Step 2, first exposure). In all subsequent roadmap displays (Step 4/5/6), show labels only without descriptions.
 
 - **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
   - If Interactive: Step 5 runs one item at a time
   - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
-- **Internal note**: Status colors: 🟢 complete / 🟡 in progress / 🔴 pending. "Scenario analysis" covers Step 4 + Step 5 — mark 🟡 at Step 4, mark 🟢 when Step 5 completes. "Test rules" covers Step 6 + Step 7 + Step 8 — mark 🟡 at Step 6, mark 🟢 when Step 8 completes.
+- **Internal note**: Status colors: 🟢 complete / 🟡 in progress / 🔴 pending. "Scenario Analysis" covers Step 4 + Step 5 — mark 🟡 at Step 4, mark 🟢 when Step 5 completes. "Test Rules" covers Step 6 + Step 7 + Step 8 — mark 🟡 at Step 6, mark 🟢 when Step 8 completes.
 
 ### Step 3: Scenario Proposal
 
@@ -105,18 +98,17 @@ we'll refine this scenario through the following steps:
 - Analyze `agent-profile.md` only (NO codebase reading) → propose 3–5 concrete scenarios
 - Format: number + 1-line title + blockquote with concrete situation
 - Reflect `learnings.md` insights if available
-- **After proposals**: use the `AskUserQuestion` tool to let the user choose. Options: each proposed scenario as a selectable option, plus "codebase analysis" option for deeper proposals. The user can always enter their own via "Other".
-- **If user requests codebase analysis:** read only the key files/paths identified in agent-profile (not the full codebase), then propose additional or refined scenarios
+- **After proposals**: use the `AskUserQuestion` tool with up to 5 proposed scenarios as selectable options (no extra options — use all slots for scenarios)
+- **Fallback guidance**: after the AskUserQuestion, add a text note: "If none of these fit, let me know — I can dig deeper into the codebase for more targeted proposals, or you can describe your own scenario."
+- **If user requests deeper exploration:** read only the key files/paths identified in agent-profile (not the full codebase), then propose additional or refined scenarios
 
 ### Step 4: Scenario Breakdown
 
-**Goal**: Show the user what concepts need to be defined for this scenario. The user should see the full map of "what we need to decide" organized by topic — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended.
+**Goal**: Show the user a compact overview of what needs to be defined for this scenario. The user should see the full map of "what we need to decide" at a glance — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended. Details are explored one-by-one in Step 5, not here.
 
 **Principles**:
 - **Sentence-first, not code-first.** Identify ambiguities from the scenario sentence itself FIRST. Only look at agent-profile or code when resolving a specific ambiguity that requires it — and even then, target only the relevant files/paths, not the full codebase.
-- **Topic-first, not status-first.** Group by each concept that needs defining (e.g., "non-existent table/column", "how to handle"), not by status (confirmed vs. to-discuss). The user's mental model is "what topics do we need to cover," not "how many items are confirmed."
-- Within each topic, show what's already clear (✅) and what needs discussion (❓) together — so the user sees the full picture of each concept in one place.
-- Confirmed sub-items are alignment checkpoints. If the user disagrees, catch it now.
+- **Overview, not deep-dive.** This step shows the list of topics to cover, each as a single line. Detailed ✅/❓ exploration happens in Step 5 — don't front-load it here.
 - **Never expose internal terms** — classification names, resolution strategies, framework vocabulary stay invisible.
 
 **Procedure**:
@@ -124,28 +116,31 @@ we'll refine this scenario through the following steps:
 > Read references/internal-framework.md (ambiguity identification + classification — do NOT expose terms to user)
 > Read references/output-examples.md § "Scenario Breakdown"
 
-- **Display**: output the following EXACTLY. Replace only {placeholders}. Do NOT use tables.
+1. **Analyze (internal)**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names). For each topic, identify confirmed facts (✅) and open questions (❓).
+2. **Save**: write full analysis (with ✅/❓ details per topic) to `scenario-planning-{scenario-name}.md` at `.fluxloop/test-memory/`. This becomes the working document for Step 5.
+3. **Display**: show only the compact summary to the user. Output in this template format. Do NOT use tables.
 
 ```
 Now let's analyze the scenario and identify what needs to be defined.
 
-🟢 Scenario topic: {selected scenario topic}
-🟡 Scenario analysis ← current
-🔴 Test rules
+🟢 Scenario Topic
+🟡 Scenario Analysis
+🔴 Test Rules
 
 ---
 
 Here are the items to define for this scenario:
+
+Define #1. {topic title}: {1-line description of what needs to be decided}
+Define #2. {topic title}: {1-line description}
+Define #3. {topic title}: {1-line description}
+💡 Define #4. {topic title}: {1-line description}
+💡 Define #5. {topic title}: {1-line description}
 ```
 
-Then present the Define blocks immediately after.
-
-- **Internal**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names)
-- For ✅ confirmed items: use information already available from agent-profile. Only do targeted code lookup if a specific item genuinely cannot be confirmed without it.
-- **Output**: present each topic as `Define #N` with its confirmed (✅) and to-discuss (❓) sub-items grouped together
-- Implicitly discovered topics (💡) appear as additional `Define` blocks at the end
-- Ask for confirmation on the overall breakdown
-- Create `scenario-planning-{scenario-name}.md` at `.fluxloop/test-memory/`
+- Each Define is a single line: topic title + brief description of the decision needed
+- 💡 prefix for implicitly discovered topics (not directly stated in the scenario sentence)
+- **Confirmation**: use `AskUserQuestion` tool. First option: "Proceed as-is (Recommended)". Second option: "I need changes".
 
 ### Step 5: Exploration Dialogue
 
@@ -162,7 +157,12 @@ Then present the Define blocks immediately after.
 > Read references/output-examples.md § "Progress Tracker" and "Variant Presentation"
 
 - **One question at a time** — never bundle multiple items in a single turn
-- **Progress tracker every turn**: `📋 Progress (N/M)` with 🔵 done / 💬 current / ⏳ waiting
+- **Roadmap every turn**: show the 3-color roadmap with progress count (current/total, starting at 1) embedded in the 🟡 line:
+  ```
+  🟢 Scenario Topic
+  🟡 Scenario Analysis (N/M) in progress...
+  🔴 Test Rules
+  ```
 - For each item: present concrete variants (1-line title + blockquote), ask user to choose
 - **Exit**: user signals "enough" → set defaults for remaining items → proceed to Step 6
 
@@ -179,14 +179,14 @@ Then present the Define blocks immediately after.
 
 > Read references/output-examples.md § "Decision Integration"
 
-- **Display**: output the following EXACTLY. Replace only {placeholders}. Do NOT use tables.
+- **Display**: output in this template format. Do NOT use tables.
 
 ```
 All items have been defined. Now moving on to test rules.
 
-🟢 Scenario topic: {selected scenario topic}
-🟢 Scenario analysis
-🟡 Test rules ← current
+🟢 Scenario Topic
+🟢 Scenario Analysis
+🟡 Test Rules
 
 ---
 
