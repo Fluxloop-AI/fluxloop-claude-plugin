@@ -51,59 +51,77 @@ Why bad: Uses a table with internal "code flow" column. Scenario titles are abst
 
 ---
 
-## 2. Minimal Analysis Summary (Step 4)
+## 2. Scenario Breakdown (Step 4)
 
 ### Good Example ✅
 
 ```
-🔍 Analysis: ✅ 3 confirmed · ❓ 2 to discuss · 💡 1 discovered
-```
-
-### Bad Example ❌
-
-```
-Phase 1 Item Extraction results:
-- clear/explicit: 3 (Resolution: agent-profile auto-fill)
-- unclear/explicit: 2 (Resolution: user question)
-- unclear/implicit: 1 (Resolution: target exploration)
-```
-
-Why bad: Exposes internal classification axis names, resolution strategies, and phase numbering.
+Here's what we need to define for this scenario:
 
 ---
 
-## 3. Confirmed Items Batch Presentation (Step 4)
+Define #1. "Non-existent table/column"
 
-### Good Example ✅
+  ✅ Scope is based on the current data schema
+     > From the agent-profile, the agent accesses orders, customers,
+     > products. Any table/column name outside this schema counts as
+     > "non-existent."
+
+  ❓ What kinds of "non-existent" should we cover?
+     > Completely made-up name / typo / column from a different
+     > table — how far should we go?
+
+---
+
+Define #2. "How to handle"
+
+  ❓ What does appropriate handling look like?
+     > Just refuse / show actual column list / suggest similar
+     > names / offer alternative queries
+
+---
+
+💡 Define #3. Mixed requests
+
+  ❓ What if existing and non-existing columns are requested together?
+     > Reject the entire request / process what's possible and
+     > flag the rest
+
+---
+
+Does this breakdown capture the right topics?
+```
+
+### Bad Example ❌ (status-first grouping)
 
 ```
-✅ Let's start with the confirmed items:
+🔍 Analysis: ✅ 3 confirmed · ❓ 2 to discuss · 💡 1 discovered
 
+✅ Confirmed:
   • Target tables are orders, customers, products
-    > From the agent-profile, the agent accesses these 3 tables.
-    > The scenario will operate within this scope.
-
   • The agent generates SQL to query data
-    > When receiving a user question, it creates a SQL query,
-    > executes it, and summarizes the results in natural language.
+  • ...
 
-  Does this look right?
+❓ To discuss:
+  • Meaning of "non-existent"
+  • Scope of "appropriate handling"
+
+💡 Discovered:
+  • Mixed request handling
 ```
 
-### Bad Example ❌
+Why bad: Groups by status, not by topic. User can't see the full picture of each concept — confirmed and to-discuss items for the same topic are split apart.
+
+### Bad Example ❌ (codebase facts)
 
 ```
-## Clear/Explicit Items (auto-filled from agent-profile)
-
-| Item | Classification | Definition | Resolution Strategy |
-|------|---------------|------------|-------------------|
-| Target tables | clear/explicit | orders, customers, products | agent-profile auto-fill |
-| Query method | clear/explicit | SQL generation | agent-profile auto-fill |
-
-Please confirm these items.
+✅ Confirmed:
+  • run_sql returns errors in structured format
+  • describe_table does not throw on missing tables
+  • list_tables returns empty array
 ```
 
-Why bad: Exposes Classification, Resolution Strategy columns. Uses table format with internal metadata.
+Why bad: Lists technical facts gathered from the codebase instead of analyzing ambiguities in the scenario sentence. The user can't see how these relate to what they asked.
 
 ---
 

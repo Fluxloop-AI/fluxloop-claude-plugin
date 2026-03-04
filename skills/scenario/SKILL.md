@@ -39,6 +39,7 @@ description: |
 
 **Principles**:
 - This is a grounding step — be efficient. Don't turn it into a lengthy conversation.
+- **Opening tone**: The first thing the user sees should feel like a natural start to a collaborative session, NOT a system boot-up log. Lead with purpose (e.g. "Let's design test scenarios for how your agent should behave in specific situations.") — context loading happens in the background, and the user only sees results (status block) not the process.
 - Staleness is not just a version mismatch. When flagging it, briefly explain what *kind* of changes might invalidate previous analysis (e.g., new tools added, prompt rewritten, schema changed).
 - Learnings from previous sessions (`learnings.md`) are accumulated team knowledge. Always incorporate them — they prevent re-asking questions the user already answered.
 
@@ -80,24 +81,25 @@ description: |
 - Reflect `learnings.md` insights if available
 - User selects or enters custom scenario
 
-### Step 4: Analysis + Confirmed Items
+### Step 4: Scenario Breakdown
 
-**Goal**: Map out the unknown territory. The user should see clearly what's already decided and what still needs discussion — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended.
+**Goal**: Show the user what concepts need to be defined for this scenario. The user should see the full map of "what we need to decide" organized by topic — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended.
 
 **Principles**:
-- The analysis serves the user, not the framework. Classify internally, but present only what matters to the user: "these are settled, these need your input."
-- Confirmed items are not just informational — they're alignment checkpoints. If the user disagrees with something marked "confirmed," catch it now before it becomes a wrong assumption in the contracts.
-- Keep the summary minimal. One status line + confirmed items batch. The user should grasp the full picture in under 10 seconds.
+- **Topic-first, not status-first.** Group by each concept that needs defining (e.g., "non-existent table/column", "how to handle"), not by status (confirmed vs. to-discuss). The user's mental model is "what topics do we need to cover," not "how many items are confirmed."
+- Within each topic, show what's already clear (✅) and what needs discussion (❓) together — so the user sees the full picture of each concept in one place.
+- Confirmed sub-items are alignment checkpoints. If the user disagrees, catch it now.
 - **Never expose internal terms** — classification names, resolution strategies, framework vocabulary stay invisible.
 
 **Procedure**:
 
-> Read references/internal-framework.md (classification — do NOT expose terms to user)
-> Read references/output-examples.md § "Minimal Analysis Summary" and "Confirmed Items"
+> Read references/internal-framework.md (ambiguity identification + classification — do NOT expose terms to user)
+> Read references/output-examples.md § "Scenario Breakdown"
 
-- **Internal**: classify items using the framework (never expose classification names)
-- **Output (a)**: minimal summary line — `🔍 Analysis: ✅ N confirmed · ❓ N to discuss · 💡 N discovered`
-- **Output (b)**: batch-present confirmed items (1-line title + blockquote) → ask for confirmation
+- **Internal**: identify ambiguities in the scenario sentence using the framework (never expose classification names)
+- **Output**: present each topic as `Define #N` with its confirmed (✅) and to-discuss (❓) sub-items grouped together
+- Implicitly discovered topics (💡) appear as additional `Define` blocks at the end
+- Ask for confirmation on the overall breakdown
 - Create `scenario-planning-{scenario-name}.md` at `.fluxloop/test-memory/`
 
 ### Step 5: Exploration Dialogue
@@ -207,5 +209,5 @@ These apply to every Step. The Workflow section references this explicitly.
 
 1. Scope: **agent behavior level only** — no user profiles or business context
 2. **1-line title + blockquote detail** for all bullet items presented to the user
-3. **Each Step starts with user-facing explanation** — what it does + what user needs to do
+3. **User-friendly framing** — Frame every explanation from the user's perspective (what value they get, what they'll do next), NOT from the system's perspective (what technical operation is running). Never announce internal operations ("Starting skill…", "Checking project state…", "Loading context…"). Instead, speak naturally about the user's goal and what comes next. The user should feel they're starting a collaborative session, not watching a system boot sequence.
 4. `scenario-planning-{name}.md` is intermediate; final contracts go to `test-strategy.md`
