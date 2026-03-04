@@ -57,7 +57,7 @@ description: |
 - Keep the confirmation to exactly one line. No folder paths, no technical details unless the user asks.
 
 **Procedure**:
-- **Internal**: derive folder name from agent-profile (English kebab-case)
+- **Internal**: derive folder name (English kebab-case) and display name from agent-profile + selected scenario
 - Run `fluxloop init scenario <name>` → inform user that the folder was created (one line)
 
 ### Step 3: Scenario Proposal
@@ -78,7 +78,7 @@ description: |
 - Analyze `agent-profile.md` + codebase → propose 3–5 concrete scenarios
 - Format: number + 1-line title + blockquote with concrete situation
 - Reflect `learnings.md` insights if available
-- User selects or enters custom scenario, then specifies a display name
+- User selects or enters custom scenario
 
 ### Step 4: Analysis + Confirmed Items
 
