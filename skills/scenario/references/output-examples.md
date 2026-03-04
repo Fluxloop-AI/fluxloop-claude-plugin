@@ -35,7 +35,9 @@ Which situation should we test?
      > "Analyze recent data" — which table, what time range,
      > and what kind of analysis are all unspecified.
 
-  4) Enter your own
+  Above are initial proposals based on the agent profile.
+  Already have a specific situation in mind? Feel free to describe it.
+  Or should I analyze the codebase more deeply for more targeted proposals?
 ```
 
 ### Bad Example ❌
@@ -48,6 +50,91 @@ Which situation should we test?
 ```
 
 Why bad: Uses a table with internal "code flow" column. Scenario titles are abstract, not concrete situations.
+
+### Bad Example ❌ (chatbot-style option list)
+
+```
+Please select one of the following:
+
+  - Select a scenario above — let me know by number
+  - Enter your own scenario — if you already have a situation in mind
+  - Request codebase analysis — for more targeted proposals based on actual code
+```
+
+Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal menu. The good example achieves the same three options ("select one", "describe your own", "request deeper analysis") in two casual lines at the end — no bullet list, no formal "please select".
+
+---
+
+## 1.5. Scenario Roadmap (Step 2, after init)
+
+### Good Example ✅
+
+```
+🎞️ {scenario-name} scenario has been created.
+  > 📂 {folder-path}
+
+Now preparing the elements needed to refine this scenario.
+
+🟢 Scenario topic: {selected scenario topic description}
+🔴 Scenario analysis ← starting here
+🔴 Test rules
+
+---
+
+Based on the scenario topic above,
+we'll refine this scenario through the following steps:
+
+1) Scenario analysis: identify what situations to test
+2) Test rule discussion: decide how the agent should behave in each situation
+3) Test rule finalization & save: organize decisions into rules and save
+```
+
+After the template above, use `AskUserQuestion` for mode selection with two options: "Interactive (default)" and "Automatic".
+
+Notes:
+- 🟢/🔴 status updates as steps complete (🔴 → 🟢)
+- The scenario topic line includes the actual selected scenario topic
+- The "← starting here" / "← current" marker shows current position
+- Mode selection uses AskUserQuestion tool, NOT inline text
+
+---
+
+## 1.6. Step Transition: Scenario Analysis (Step 4 start)
+
+Shown at the beginning of Step 4, after mode selection.
+
+### Good Example ✅
+
+```
+🟢 Scenario topic: {selected scenario topic description}
+🔴 Scenario analysis ← current
+🔴 Test rules
+
+---
+
+Here are the items to define for this scenario:
+
+Define #1. ...
+```
+
+---
+
+## 1.7. Step Transition: Test Rules (Step 6 start)
+
+Shown when Step 5 (Exploration) completes and Step 6 (Decision Integration) begins.
+
+### Good Example ✅
+
+```
+🟢 Scenario topic: {selected scenario topic description}
+🟢 Scenario analysis
+🔴 Test rules ← current
+
+---
+
+Scenario analysis is complete.
+Now let's turn the decisions into test rules.
+```
 
 ---
 

@@ -51,24 +51,40 @@ description: |
 
 ### Step 2: Scenario Initialization (automatic)
 
-**Goal**: Set up the workspace so the user can focus on scenario design, not file management. This step should feel invisible — the user just sees a one-line confirmation.
+**Goal**: Set up the workspace and orient the user — what was created, where they are, and what's coming next. This step transitions from scenario selection into the structured workflow.
 
 **Principles**:
 - Minimize cognitive load. The user didn't come here to think about folder names — derive them silently from agent-profile.
-- Keep the confirmation to exactly one line. No folder paths, no technical details unless the user asks.
+- After init, the user needs **three things**: what was created (folder path), where they are in the process (status indicators), and what's ahead (roadmap). Without this, the next step feels abrupt.
+- The roadmap uses **user-facing labels** that don't map 1:1 to internal steps. The user doesn't need to know about internal step boundaries.
+
+**User-facing label → Internal step mapping:**
+
+| User-facing label | Internal steps |
+|---|---|
+| 🟢 Scenario topic | Step 3 (already completed) |
+| 🔴 Scenario analysis | Step 4 (Breakdown) + Step 5 (Exploration) |
+| 🔴 Test rules | Step 6 (Integration) + Step 7 (Extraction) + Step 8 (Save) |
+
+Status updates: 🔴 → 🟢 when the corresponding internal steps are all completed.
 
 **Procedure**:
 - **Internal**: derive folder name (English kebab-case) and display name from agent-profile + selected scenario
-- Run `fluxloop init scenario <name>` → inform user that the folder was created (one line)
+- Run `fluxloop init scenario <name>`
+- **Display**: output the scenario roadmap EXACTLY as defined in output-examples.md § "Scenario Roadmap". Substitute only the placeholders ({scenario-name}, {folder-path}, {selected scenario topic}). Do NOT rearrange, add tables, or change the structure in any way.
+
+- **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
+  - If Interactive: Step 5 runs one item at a time
+  - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
 
 ### Step 3: Scenario Proposal
 
 **Goal**: Surface the user's testing intent and taste — what they actually care about verifying in this agent. The proposals are a menu for the user to react to, not a final answer. A good proposal set makes the user quickly say "this one" or sparks them to articulate something they couldn't express from scratch.
 
 **Principles**:
+- **Profile-first, code-later.** Start from agent-profile alone — it already contains enough information (tools, data sources, responsibilities) to generate meaningful scenario candidates. Do NOT read the codebase at this stage.
 - Proposals are a discovery tool, not a recommendation. Cover a diverse range of the agent's behavioral surface so the user can locate their intent by reacting to concrete options.
 - Every scenario must be a **concrete situation**, not an abstract label. "When a non-existent column is requested" (O) vs. "Error handling" (X).
-- Derive scenarios from the agent's actual code — where it branches, where it calls external tools, where it makes judgment calls. Generic testing categories are useless here.
 - Scope to **agent behavior only**. Don't drift into user profiles, business context, or system-level concerns — stay at the level of "what does the agent do in this situation."
 - `learnings.md` may reveal what the user cared about in previous sessions — use it to refine the range, not to repeat the same scenarios.
 
@@ -76,16 +92,18 @@ description: |
 
 > Read references/output-examples.md § "Scenario Candidate Presentation"
 
-- Analyze `agent-profile.md` + codebase → propose 3–5 concrete scenarios
+- Analyze `agent-profile.md` only (NO codebase reading) → propose 3–5 concrete scenarios
 - Format: number + 1-line title + blockquote with concrete situation
 - Reflect `learnings.md` insights if available
-- User selects or enters custom scenario
+- **After proposals**: use the `AskUserQuestion` tool to let the user choose. Options: each proposed scenario as a selectable option, plus "codebase analysis" option for deeper proposals. The user can always enter their own via "Other".
+- **If user requests codebase analysis:** read only the key files/paths identified in agent-profile (not the full codebase), then propose additional or refined scenarios
 
 ### Step 4: Scenario Breakdown
 
 **Goal**: Show the user what concepts need to be defined for this scenario. The user should see the full map of "what we need to decide" organized by topic — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended.
 
 **Principles**:
+- **Sentence-first, not code-first.** Identify ambiguities from the scenario sentence itself FIRST. Only look at agent-profile or code when resolving a specific ambiguity that requires it — and even then, target only the relevant files/paths, not the full codebase.
 - **Topic-first, not status-first.** Group by each concept that needs defining (e.g., "non-existent table/column", "how to handle"), not by status (confirmed vs. to-discuss). The user's mental model is "what topics do we need to cover," not "how many items are confirmed."
 - Within each topic, show what's already clear (✅) and what needs discussion (❓) together — so the user sees the full picture of each concept in one place.
 - Confirmed sub-items are alignment checkpoints. If the user disagrees, catch it now.
@@ -96,7 +114,9 @@ description: |
 > Read references/internal-framework.md (ambiguity identification + classification — do NOT expose terms to user)
 > Read references/output-examples.md § "Scenario Breakdown"
 
-- **Internal**: identify ambiguities in the scenario sentence using the framework (never expose classification names)
+- **Display**: output the step transition roadmap EXACTLY as defined in output-examples.md § "Step Transition: Scenario Analysis". Substitute only the placeholder ({selected scenario topic}). Do NOT rearrange or change the structure.
+- **Internal**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names)
+- For ✅ confirmed items: use information already available from agent-profile. Only do targeted code lookup if a specific item genuinely cannot be confirmed without it.
 - **Output**: present each topic as `Define #N` with its confirmed (✅) and to-discuss (❓) sub-items grouped together
 - Implicitly discovered topics (💡) appear as additional `Define` blocks at the end
 - Ask for confirmation on the overall breakdown
@@ -134,6 +154,7 @@ description: |
 
 > Read references/output-examples.md § "Decision Integration"
 
+- **Display**: output the step transition roadmap EXACTLY as defined in output-examples.md § "Step Transition: Test Rules". Substitute only the placeholder ({selected scenario topic}). Do NOT rearrange or change the structure.
 - Consolidate decisions using 1-line title + blockquote (NO tables, NO metadata)
 - End with confirmation prompt — corrections reopen specific items
 
