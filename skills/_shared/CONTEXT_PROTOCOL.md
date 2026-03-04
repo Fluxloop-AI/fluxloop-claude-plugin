@@ -27,7 +27,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 |-------|-------|--------|------------------------|
 | setup | — | — | `auth login`, `projects create/select` |
 | context | — | agent-profile | `intent refine`, `data push` |
-| scenario | agent-profile, learnings | test-strategy, scenario-planning | `scenarios create/refine`, `sync pull` |
+| scenario | agent-profile, learnings | test-strategy, scenario-planning-{name} | `scenarios create/refine`, `sync pull` |
 | test | agent-profile, test-strategy | results-log | `sync pull`, `test --scenario` |
 | evaluate | agent-profile, results-log, test-strategy | learnings, results-log | `evaluate --experiment-id` |
 | prompt-compare | agent-profile, results-log | prompt-versions, results-log | `test --scenario` (×2) |
@@ -47,7 +47,7 @@ The scenario, test, evaluate, and prompt-compare skills check for staleness when
 ```
 context → agent-profile.md + intent refine (server) + data push (server)
   ↓
-scenario → read agent-profile (stale? → refresh) → test-strategy.md + scenario-planning.md + scenarios create (server)
+scenario → read agent-profile (stale? → refresh) → test-strategy.md + scenario-planning-{name}.md + scenarios create (server)
   ↓
 test → read agent-profile, test-strategy (stale? → refresh) → results-log.md + test results (server)
   ↓
