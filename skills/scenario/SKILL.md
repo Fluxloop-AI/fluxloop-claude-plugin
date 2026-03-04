@@ -31,11 +31,18 @@ description: |
 ## Workflow
 
 > Execute each Step sequentially. Do not batch Bash/Read calls in parallel.
+> Every Step must also follow the Cross-Cutting Rules at the bottom of this document.
 
 ### Step 1: Context Load + Stale Detection
 
-*Load project context and check if anything has changed since the last analysis.*
+**Goal**: Start from an accurate, current understanding of the target agent. If the profile is stale, downstream scenarios may be built on wrong assumptions — making the entire session's output unreliable.
 
+**Principles**:
+- This is a grounding step — be efficient. Don't turn it into a lengthy conversation.
+- Staleness is not just a version mismatch. When flagging it, briefly explain what *kind* of changes might invalidate previous analysis (e.g., new tools added, prompt rewritten, schema changed).
+- Learnings from previous sessions (`learnings.md`) are accumulated team knowledge. Always incorporate them — they prevent re-asking questions the user already answered.
+
+**Procedure**:
 - Read `agent-profile.md`: extract `git_commit`, compare with `git rev-parse --short HEAD`
   - If different → ask if user wants to update the profile
   - If `no-git` → continue without warning
@@ -43,14 +50,28 @@ description: |
 
 ### Step 2: Scenario Initialization (automatic)
 
-*A scenario folder is created automatically based on agent characteristics.*
+**Goal**: Set up the workspace so the user can focus on scenario design, not file management. This step should feel invisible — the user just sees a one-line confirmation.
 
+**Principles**:
+- Minimize cognitive load. The user didn't come here to think about folder names — derive them silently from agent-profile.
+- Keep the confirmation to exactly one line. No folder paths, no technical details unless the user asks.
+
+**Procedure**:
 - **Internal**: derive folder name from agent-profile (English kebab-case)
 - Run `fluxloop init scenario <name>` → inform user that the folder was created (one line)
 
 ### Step 3: Scenario Proposal
 
-*Present a few test situations based on agent characteristics. Ask the user to pick one.*
+**Goal**: Surface the user's testing intent and taste — what they actually care about verifying in this agent. The proposals are a menu for the user to react to, not a final answer. A good proposal set makes the user quickly say "this one" or sparks them to articulate something they couldn't express from scratch.
+
+**Principles**:
+- Proposals are a discovery tool, not a recommendation. Cover a diverse range of the agent's behavioral surface so the user can locate their intent by reacting to concrete options.
+- Every scenario must be a **concrete situation**, not an abstract label. "When a non-existent column is requested" (O) vs. "Error handling" (X).
+- Derive scenarios from the agent's actual code — where it branches, where it calls external tools, where it makes judgment calls. Generic testing categories are useless here.
+- Scope to **agent behavior only**. Don't drift into user profiles, business context, or system-level concerns — stay at the level of "what does the agent do in this situation."
+- `learnings.md` may reveal what the user cared about in previous sessions — use it to refine the range, not to repeat the same scenarios.
+
+**Procedure**:
 
 > Read references/output-examples.md § "Scenario Candidate Presentation"
 
@@ -61,7 +82,15 @@ description: |
 
 ### Step 4: Analysis + Confirmed Items
 
-*Analyze the chosen scenario. Show what's already clear and what needs discussion.*
+**Goal**: Map out the unknown territory. The user should see clearly what's already decided and what still needs discussion — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended.
+
+**Principles**:
+- The analysis serves the user, not the framework. Classify internally, but present only what matters to the user: "these are settled, these need your input."
+- Confirmed items are not just informational — they're alignment checkpoints. If the user disagrees with something marked "confirmed," catch it now before it becomes a wrong assumption in the contracts.
+- Keep the summary minimal. One status line + confirmed items batch. The user should grasp the full picture in under 10 seconds.
+- **Never expose internal terms** — classification names, resolution strategies, framework vocabulary stay invisible.
+
+**Procedure**:
 
 > Read references/internal-framework.md (classification — do NOT expose terms to user)
 > Read references/output-examples.md § "Minimal Analysis Summary" and "Confirmed Items"
@@ -73,7 +102,15 @@ description: |
 
 ### Step 5: Exploration Dialogue
 
-*Walk through ambiguous items one by one. Each answer makes the test more concrete.*
+**Goal**: Resolve every ambiguous item into a concrete behavioral expectation — whether through user decision or accepted defaults. By the end, no item remains undecided: each one has a specific expectation attached to it.
+
+**Principles**:
+- Be Socratic, not transactional. Don't just present options and wait — present implications of each option so the user can make an informed choice. But don't lead toward a specific answer, and limit follow-up questions to one per item.
+- **One question at a time.** Bundling multiple items overwhelms the user and produces shallow answers. Depth on each item matters more than speed.
+- Respect user fatigue. If the user signals "enough," don't push — set sensible defaults for remaining items and move on. The goal is useful contracts, not exhaustive coverage.
+- **Progress tracker every turn.** The user should always know where they are, how much is done, and how much is left. This prevents the "are we done yet?" feeling.
+
+**Procedure**:
 
 > Read references/output-examples.md § "Progress Tracker" and "Variant Presentation"
 
@@ -84,7 +121,14 @@ description: |
 
 ### Step 6: Decision Integration
 
-*Consolidate all decisions so far. Ask user to review for anything missing.*
+**Goal**: Give the user a single, coherent view of everything decided so far. This is the last chance to catch contradictions, gaps, or misaligned assumptions before they become formalized rules.
+
+**Principles**:
+- This is a review checkpoint, not a formality. Actively look for decisions that might contradict each other when placed side by side — things that seemed fine in isolation during Step 5 may conflict in the full picture.
+- Present decisions so the user can read through naturally and feel "yes, this is what I want" — not decode a structured artifact.
+- If the user corrects something, reopen that specific item inline — present variants (Step 5 style), resolve, then return to this step. Don't restart the full exploration.
+
+**Procedure**:
 
 > Read references/output-examples.md § "Decision Integration"
 
@@ -93,7 +137,15 @@ description: |
 
 ### Step 7: Rule Extraction + Confirmation
 
-*Convert decisions into testable rules. Ask user to confirm before saving.*
+**Goal**: Transform human decisions into machine-testable contracts. Every contract must be precise enough that an automated test can unambiguously determine pass or fail — no room for interpretation.
+
+**Principles**:
+- Be precise, not verbose. Strip out subjective language ("appropriately", "well", "sufficiently") — if a word requires human judgment to evaluate, the contract is not testable.
+- Write from the **agent's behavioral perspective** ("The agent must..."), not system perspective ("The system should...").
+- `must_not` contracts are the highest-stakes rules. They should emerge naturally from decisions made in Step 5 (where the user identified dangerous behaviors), not be invented here as an afterthought.
+- This is still a confirmation step. If a decision doesn't translate well into a rule, reopen that item inline — present variants (Step 5 style), resolve, then return to this step.
+
+**Procedure**:
 
 > Read references/internal-framework.md § "Expectation Level → Contract Type"
 > Read references/output-examples.md § "Contract Final Presentation"
@@ -105,11 +157,25 @@ description: |
 
 ### Step 8: Save (Dual Write)
 
+**Goal**: Persist the confirmed contracts so they're immediately usable for testing. The user should feel "done" after this step — no manual copy-paste or file management needed.
+
+**Principles**:
+- Both writes (local + server) must succeed. If one fails, inform the user clearly and offer a retry — don't silently skip.
+- Overwrite `test-strategy.md` entirely. This file represents the current truth, not an append log.
+
+**Procedure**:
 - Local: save to `.fluxloop/test-memory/test-strategy.md` (use `test-memory-template/test-strategy.md` format)
 - Server: `fluxloop scenarios create --name "..." --goal "..."`
 
 ### Step 9: Language + API Key + Wrapper
 
+**Goal**: Ensure the testing environment is fully configured so the user can run tests immediately after this skill completes. No loose ends.
+
+**Principles**:
+- Don't ask what's already answerable. Check existing config (`.fluxloop/.env`, project defaults) before asking the user anything.
+- This is a setup step, not a decision step. Keep it fast and frictionless.
+
+**Procedure**:
 - **Language**: project default → allow override
 - **API Key**: `.fluxloop/.env` exists → skip; missing → `fluxloop apikeys create`
 - **Wrapper**: if needed → read references/wrapper-guide.md
@@ -135,15 +201,11 @@ Scenario ready → Run tests (test skill)
 
 > CLI reference: read skills/_shared/QUICK_REFERENCE.md
 
-## Key Rules
+## Cross-Cutting Rules
 
-1. Read `agent-profile.md` first — use for proposals + stale detection
-2. Scenario candidates must be **concrete situations**, never generic categories
-3. Scope: **agent behavior level only** — no user profiles or business context
-4. **One question at a time** in Step 5 — never bundle variants + policy + confirmation
-5. **Never expose internal terms** (classifications, strategies, framework names)
-6. **1-line title + blockquote detail** for all bullet items
-7. **Progress tracker every turn** in Step 5 (🔵/💬/⏳)
-8. **Each Step starts with user-facing explanation** — what it does + what user needs to do
-9. Dual Write: server + local simultaneously. Overwrite `test-strategy.md` entirely
-10. `scenario-planning-{name}.md` is intermediate; final contracts go to `test-strategy.md`
+These apply to every Step. The Workflow section references this explicitly.
+
+1. Scope: **agent behavior level only** — no user profiles or business context
+2. **1-line title + blockquote detail** for all bullet items presented to the user
+3. **Each Step starts with user-facing explanation** — what it does + what user needs to do
+4. `scenario-planning-{name}.md` is intermediate; final contracts go to `test-strategy.md`
