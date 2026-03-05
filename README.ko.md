@@ -129,10 +129,11 @@ your-project/
 │   │       ├── .state/
 │   │       │   └── contracts/  # 시나리오 계약 (YAML)
 │   │       ├── inputs/       # 테스트 입력 데이터
-│   │       └── experiments/  # 테스트 결과
+│   │       ├── experiments/  # 테스트 결과
+│   │       ├── scenario-planning.md  # 시나리오 설계 작업 문서
+│   │       └── test-strategy.md      # 테스트 목표 및 계약
 │   └── test-memory/          # 스킬 간 공유 컨텍스트 (자동 생성)
 │       ├── agent-profile.md  # 에이전트 프로필 및 메타데이터
-│       ├── test-strategy.md  # 테스트 목표 및 기준
 │       ├── prompt-versions.md # 프롬프트 버전 이력
 │       ├── results-log.md    # 테스트 결과 로그
 │       └── learnings.md      # 인사이트 및 개선사항

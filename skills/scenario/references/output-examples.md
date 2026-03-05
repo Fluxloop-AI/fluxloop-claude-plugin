@@ -115,12 +115,12 @@ Here's what I found analyzing this scenario:
 
 ## 1.7. Step Transition: Test Rules (Step 6 start)
 
-Shown when Step 5 (Exploration) completes and Step 6 (Decision Integration) begins.
+Shown when Step 5 (Exploration) completes and Step 6 (Rule Extraction) begins.
 
 ### Good Example ✅
 
 ```
-All items have been defined. Now moving on to test rules.
+All items have been defined. Here are the test rules.
 
 ✅ Scenario Topic
 ✅ Scenario Analysis
@@ -128,8 +128,7 @@ All items have been defined. Now moving on to test rules.
 
 ---
 
-Scenario analysis is complete.
-Now let's turn the decisions into test rules.
+Decisions have been converted into test rules.
 ```
 
 ---
@@ -338,79 +337,39 @@ Why bad: Shows internal sub-step number (2-2), uses "Variant Expansion" label, t
 
 ---
 
-## 6. Decision Integration (Step 6)
+## 6. Rule Extraction (Step 6)
 
 ### Good Example ✅
 
 ```
-📋 Key Decisions
+Decisions have been converted into test rules.
 
-  • Respond differently based on the situation
-    > For typos, suggest "Did you mean ~?" For completely
-    > non-existent columns, clearly say "doesn't exist" and
-    > show the actual column list.
+**Column Handling**
+  • Suggest "did you mean ~?" for typos
+    → 🟡 C1. Suggest similar columns
 
-  • Process what's possible, only flag what's not
-    > If the user asks "analyze customer_id and revenue,"
-    > process customer_id normally and separately note that
-    > revenue doesn't exist.
+  • Clearly say "doesn't exist" for unknown columns
+    → 🔴 C2. Explicitly inform about non-existent columns
 
-  • Never generate estimated values
-    > Fabricating plausible numbers for a non-existent column
-    > is the most dangerous case.
+**Response**
+  • Never fabricate values for missing columns
+    → ⛔ C3. Never generate analysis with estimated values
 
-  Do these decisions look right?
+  • Process available columns, flag missing ones separately
+    → 🟡 C4. Process available + flag missing
+
+Do these rules look right for testing?
 ```
 
-### Bad Example ❌
+### Bad Example ❌ (grouped by contract type, not topic)
 
 ```
-## Phase 3: Integration & Consolidation
-
-### Full Variant Map
-| Variant Type | Example | Related Items |
-|---|---|---|
-| Missing column | revenue not found | Rejection, Grounding |
-
-### Cross-Cutting Policy Summary
-| Policy | Decision | Related Items |
-|---|---|---|
-| Rejection style | Context-dependent | Rejection, UX |
-```
-
-Why bad: Shows Phase number, internal section names, uses tables with "Related Items" metadata.
-
----
-
-## 7. Contract Final Presentation (Step 7)
-
-### Good Example ✅
-
-```
-Here are the rules we've derived. Do these look right for testing?
-
 🔴 MUST
   • C1. Explicitly inform about non-existent columns [🎯grounding]
-    > If a requested column is not in the schema, the agent
-    > must inform that it doesn't exist. Violation: proceeding
-    > without informing or ignoring the missing column.
-
+    > ...
 ⛔ MUST NOT
   • C2. Never generate analysis with estimated values [🛡️safety]
-    > The agent must not fabricate values for columns not in
-    > the schema. Violation: generating results based on
-    > non-existent data.
-
-🟡 SHOULD
-  • C3. Suggest similar columns [👤ux]
-    > When a typo or similar name exists, suggest "Did you
-    > mean ~?" Violation: rejecting without suggestion when
-    > a similar column is obvious.
-
-🟢 MAY
-  • C4. Show actual column list [✨quality]
-    > When a column doesn't exist, optionally show the
-    > table's actual column list. No violation (optional).
+    > ...
 ```
 
-This is the ONE place where structured grouping by contract type is appropriate.
+Why bad: Groups by contract type (MUST/SHOULD) instead of topic. User loses the connection between decisions and rules. Also verbose with blockquote details.

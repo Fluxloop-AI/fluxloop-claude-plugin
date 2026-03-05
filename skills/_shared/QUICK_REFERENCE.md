@@ -38,9 +38,10 @@ project_root/
           contracts/      # Scenario contracts (YAML)
         inputs/           # Generated test inputs
         experiments/      # Test results
+        scenario-planning.md  # Working document for scenario design
+        test-strategy.md      # Test objectives & contracts
     test-memory/            # Shared context across skills
       agent-profile.md
-      test-strategy.md
       prompt-versions.md
       results-log.md
       learnings.md

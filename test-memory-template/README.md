@@ -1,9 +1,10 @@
 # test-memory/
 
-A directory that stores working context across agent test sessions.
+A directory that stores shared working context across agent test sessions.
 Skills automatically create and manage these files. You may also edit them manually if needed.
 
 > This directory is created at `.fluxloop/test-memory/` inside the user's project.
+> Scenario-specific files (`scenario-planning.md`, `test-strategy.md`) are stored in `.fluxloop/scenarios/{name}/` instead.
 > No manual copying required — skills create it automatically on first run.
 
 ## Files
@@ -11,11 +12,11 @@ Skills automatically create and manage these files. You may also edit them manua
 | File | Purpose | Created by | Referenced by |
 |------|---------|------------|---------------|
 | `agent-profile.md` | Profile of the agent under test | context | scenario, test, evaluate, prompt-compare |
-| `test-strategy.md` | Test strategy and scenario configuration | scenario | test, evaluate |
+| `test-strategy.md` | Test strategy and scenario configuration — stored at `.fluxloop/scenarios/{name}/` | scenario | test, evaluate |
 | `prompt-versions.md` | Prompt version history | prompt-compare | evaluate |
 | `results-log.md` | Cumulative test results log | test, evaluate | all |
 | `learnings.md` | Insights and improvement notes | evaluate | scenario, prompt-compare |
-| `scenario-planning.md` | Working document for intent discovery exploration | scenario | scenario (internal) |
+| `scenario-planning.md` | Working document for intent discovery exploration — stored at `.fluxloop/scenarios/{name}/` | scenario | scenario (internal) |
 
 ## Notes
 

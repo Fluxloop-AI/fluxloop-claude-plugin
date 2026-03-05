@@ -23,7 +23,8 @@ description: |
 
 1. `fluxloop context show` → confirm project / scenario / test results exist
 2. `.fluxloop/test-memory/` check:
-   - Exists → load `agent-profile.md`, `results-log.md`, `test-strategy.md`
+   - Exists → load `agent-profile.md`, `results-log.md`
+   - Load `.fluxloop/scenarios/{name}/test-strategy.md` (scenario-specific)
    - Missing → "Run 'run the test' (test skill) first"
 3. Dual Write:
    - Server: `fluxloop evaluate --experiment-id`
@@ -57,7 +58,7 @@ Verify test completion: check `.fluxloop/test-memory/results-log.md` has at leas
     - Yes → run collection procedure inline (📎 read skills/_shared/CONTEXT_COLLECTION.md)
     - No → continue with existing profile
 - Read `.fluxloop/test-memory/results-log.md` → identify latest experiment ID, pass/fail ratio, history
-- Read `.fluxloop/test-memory/test-strategy.md` → load Evaluation Criteria
+- Read `.fluxloop/scenarios/{name}/test-strategy.md` → load Evaluation Criteria (`{name}` from `fluxloop context show`)
 
 ### Step 2: Server Evaluation
 

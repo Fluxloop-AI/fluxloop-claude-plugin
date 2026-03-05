@@ -129,10 +129,11 @@ your-project/
 │   │       ├── .state/
 │   │       │   └── contracts/  # Scenario contracts (YAML)
 │   │       ├── inputs/       # Test inputs
-│   │       └── experiments/  # Test results
+│   │       ├── experiments/  # Test results
+│   │       ├── scenario-planning.md  # Scenario design working doc
+│   │       └── test-strategy.md      # Test objectives & contracts
 │   └── test-memory/          # Shared context across skills (auto-generated)
 │       ├── agent-profile.md  # Agent profile & metadata
-│       ├── test-strategy.md  # Test objectives & criteria
 │       ├── prompt-versions.md # Prompt version history
 │       ├── results-log.md    # Test results log
 │       └── learnings.md      # Insights & improvements

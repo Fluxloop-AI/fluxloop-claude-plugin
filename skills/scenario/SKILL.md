@@ -9,7 +9,7 @@ description: |
 
 # FluxLoop Scenario Skill
 
-**Flow**: Profile check → Scenario init → Proposal → Analysis → Exploration → Integration → Rules → Save
+**Flow**: Profile check → Scenario init → Proposal → Analysis → Exploration → Rules → Save
 
 ## Lazy-Read Rule
 
@@ -26,7 +26,7 @@ description: |
 
 1. `fluxloop context show` → confirm project + scenario state
 2. Load `agent-profile.md` (stale detection) + `learnings.md` (if exists) from `.fluxloop/test-memory/`
-3. Dual Write: server (`fluxloop scenarios create/refine`) + local (`test-strategy.md`)
+3. Dual Write: server (`fluxloop scenarios create/refine`) + local (`.fluxloop/scenarios/{name}/test-strategy.md`)
 
 📎 Stale detection: `skills/_shared/CONTEXT_PROTOCOL.md` | Collection: `skills/_shared/CONTEXT_COLLECTION.md` — read at Step 1 start
 
@@ -91,7 +91,7 @@ Note: The inline descriptions are only shown here (Step 2, first exposure). In a
 - **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
   - If Interactive: Step 4 shows analysis with recommendations, user chooses to accept or discuss further
   - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
-- **Internal note**: Status icons: ✅ complete / ⏳ in progress / ❌ pending. "Scenario Analysis" covers Step 4 + Step 5 — mark ⏳ at Step 4, mark ✅ when Step 4 completes (if recommendations accepted) or when Step 5 completes (if opted in). "Test Rules" covers Step 6 + Step 7 + Step 8 — mark ⏳ at Step 6, mark ✅ when Step 8 completes.
+- **Internal note**: Status icons: ✅ complete / ⏳ in progress / ❌ pending. "Scenario Analysis" covers Step 4 + Step 5 — mark ⏳ at Step 4, mark ✅ when Step 4 completes (if recommendations accepted) or when Step 5 completes (if opted in). "Test Rules" covers Step 6 + Step 7 — mark ⏳ at Step 6, mark ✅ when Step 7 completes.
 
 ### Step 3: Scenario Proposal
 
@@ -129,7 +129,7 @@ Note: The inline descriptions are only shown here (Step 2, first exposure). In a
 - **First**: read `references/internal-framework.md` (ambiguity identification + classification — do NOT expose terms to user) and `references/output-examples.md` § "Scenario Breakdown" for formatting guidance
 
 1. **Analyze (internal)**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names). For each topic, identify confirmed facts (✅) and open questions (❓).
-2. **Save**: write full analysis (with ✅/❓ details per topic) to `scenario-planning-{scenario-name}.md` at `.fluxloop/test-memory/`. This becomes the working document for Step 5.
+2. **Save**: write full analysis (with ✅/❓ details per topic) to `scenario-planning.md` at `.fluxloop/scenarios/{scenario-name}/`. This becomes the working document for Step 5.
 3. **Display**: show the analysis results extracted from the saved document, organized by topic. Output in this template format. Do NOT use tables.
 
 ```
@@ -201,68 +201,68 @@ Here's what I found analyzing this scenario:
   Sub-item markers: `✓` done / `✓ (recommend)` pre-filled from accepted recommendation / `▸` current / `·` pending. The `(N/M)` count appears on the `▸` current item.
 - For each selected item: present concrete variants (1-line title + blockquote), ask user to choose
 - **Exit**: user signals "enough" → apply Recommend values for remaining items → proceed to Step 6
-- **Completion**: when Step 5 completes (or is skipped), all ❓ items must have resolved values — either from Recommend acceptance or from user decisions. This resolved state is what Step 6 displays.
+- **Completion**: when Step 5 completes (or is skipped), all ❓ items must have resolved values — either from Recommend acceptance or from user decisions. This resolved state is what Step 6 converts into contracts.
 
-### Step 6: Decision Integration
+### Step 6: Rule Extraction + Confirmation
 
-**Goal**: Give the user a single, coherent view of everything decided so far. This is the last chance to catch contradictions, gaps, or misaligned assumptions before they become formalized rules.
-
-**Principles**:
-- This is a review checkpoint, not a formality. Actively look for decisions that might contradict each other when placed side by side — things that seemed fine in isolation during Step 5 may conflict in the full picture.
-- Present decisions so the user can read through naturally and feel "yes, this is what I want" — not decode a structured artifact.
-- If the user corrects something, reopen that specific item inline — present variants (Step 5 style), resolve, then return to this step. Don't restart the full exploration.
-
-**Procedure**:
-
-- **First**: read `references/output-examples.md` § "Decision Integration" for formatting guidance
-- **Display**: output in this template format. Do NOT use tables.
-
-```
-All items have been defined. Now moving on to test rules.
-
-✅ Scenario Topic
-✅ Scenario Analysis
-⏳ Test Rules
-
----
-
-Scenario analysis is complete.
-Now let's turn the decisions into test rules.
-```
-- Consolidate decisions using 1-line title + blockquote (NO tables, NO metadata)
-- End with confirmation prompt — corrections reopen specific items
-
-### Step 7: Rule Extraction + Confirmation
-
-**Goal**: Transform human decisions into machine-testable contracts. Every contract must be precise enough that an automated test can unambiguously determine pass or fail — no room for interpretation.
+**Goal**: Convert resolved decisions into machine-testable contracts and confirm with the user. Decisions and their corresponding rules are shown together by topic, so the user sees the natural flow from "what we decided" to "what we'll test."
 
 **Principles**:
+- Actively look for decisions that might contradict each other when placed side by side — things that seemed fine in isolation during Step 5 may conflict in the full picture.
 - Be precise, not verbose. Strip out subjective language ("appropriately", "well", "sufficiently") — if a word requires human judgment to evaluate, the contract is not testable.
 - Write from the **agent's behavioral perspective** ("The agent must..."), not system perspective ("The system should...").
-- `must_not` contracts are the highest-stakes rules. They should emerge naturally from decisions made in Step 5 (where the user identified dangerous behaviors), not be invented here as an afterthought.
-- This is still a confirmation step. If a decision doesn't translate well into a rule, reopen that item inline — present variants (Step 5 style), resolve, then return to this step.
+- `must_not` contracts emerge naturally from decisions made in Step 5 (dangerous behaviors), not invented here.
+- Keep the display compact: 1-line decision + 1-line contract per item. Detailed violation conditions go only into the saved file, not displayed to the user.
+- If the user corrects something, reopen that specific item inline — present variants (Step 5 style), resolve, then return to this step.
 
 **Procedure**:
 
-- **First**: read `references/internal-framework.md` § "Expectation Level → Contract Type" and `references/output-examples.md` § "Contract Final Presentation" for formatting guidance
+- **First**: read `references/internal-framework.md` § "Expectation Level → Contract Type" and `references/output-examples.md` § "Rule Extraction" for formatting guidance
 - **Internal**: convert decisions to contracts using expectation level mapping
-- **Output**: contracts grouped by 🔴 MUST / ⛔ MUST NOT / 🟡 SHOULD / 🟢 MAY (bullet + blockquote)
-- Each contract: title, category emoji, violation conditions
-- Update `scenario-planning-{scenario-name}.md` with final contracts
+- **Display**: output in this template format. Group by topic (matching Step 4 breakdown), NOT by contract type. Do NOT use tables.
 
-### Step 8: Save (Dual Write)
+  ```
+  All items have been defined. Here are the test rules.
+
+  ✅ Scenario Topic
+  ✅ Scenario Analysis
+  ⏳ Test Rules
+
+  ---
+
+  Decisions have been converted into test rules.
+
+  **{topic name}**
+    • {decision summary, 1 line}
+      → {emoji} C{N}. {contract title}
+
+    • {decision summary, 1 line}
+      → {emoji} C{N}. {contract title}
+
+  **{topic name}**
+    • {decision summary, 1 line}
+      → {emoji} C{N}. {contract title}
+
+  Do these rules look right for testing?
+  ```
+
+- Contract type emojis: 🔴 MUST / ⛔ MUST NOT / 🟡 SHOULD / 🟢 MAY
+- Each item: 1-line decision + arrow + emoji + contract ID + title (no blockquote detail)
+- Update `.fluxloop/scenarios/{scenario-name}/scenario-planning.md` with full contracts (including violation conditions)
+
+### Step 7: Save (Dual Write)
 
 **Goal**: Persist the confirmed contracts so they're immediately usable for testing. The user should feel "done" after this step — no manual copy-paste or file management needed.
 
 **Principles**:
 - Both writes (local + server) must succeed. If one fails, inform the user clearly and offer a retry — don't silently skip.
-- Overwrite `test-strategy.md` entirely. This file represents the current truth, not an append log.
+- Overwrite `.fluxloop/scenarios/{scenario-name}/test-strategy.md` entirely. This file represents the current truth, not an append log.
 
 **Procedure**:
-- Local: save to `.fluxloop/test-memory/test-strategy.md` (format: see `<repo-root>/test-memory-template/test-strategy.md`)
+- Local: save to `.fluxloop/scenarios/{scenario-name}/test-strategy.md` (format: see `<repo-root>/test-memory-template/test-strategy.md`)
 - Server: `fluxloop scenarios create --name "..." --goal "..."`
 
-### Step 9: Language + API Key + Wrapper
+### Step 8: Language + API Key + Wrapper
 
 **Goal**: Ensure the testing environment is fully configured so the user can run tests immediately after this skill completes. No loose ends.
 
@@ -277,7 +277,7 @@ Now let's turn the decisions into test rules.
 
 ## Interactive Checkpoints
 
-Required user interactions: Step 3 (select scenario) → Step 4 (analysis review + branch) → Step 5 (per item, if opted in) → Step 6 (review decisions) → Step 7 (confirm rules). Min 3: scenario selection + analysis review + rule confirmation.
+Required user interactions: Step 3 (select scenario) → Step 4 (analysis review + branch) → Step 5 (per item, if opted in) → Step 6 (confirm rules). Min 3: scenario selection + analysis review + rule confirmation.
 
 ## Error Handling
 
@@ -303,4 +303,4 @@ These apply to every Step. The Workflow section references this explicitly.
 1. Scope: **agent behavior level only** — no user profiles or business context
 2. **1-line title + dash description or blockquote detail** for all bullet items presented to the user
 3. **User-friendly framing** — Frame every explanation from the user's perspective (what value they get, what they'll do next), NOT from the system's perspective (what technical operation is running). Never announce internal operations ("Starting skill…", "Checking project state…", "Loading context…"). Instead, speak naturally about the user's goal and what comes next. The user should feel they're starting a collaborative session, not watching a system boot sequence.
-4. `scenario-planning-{name}.md` is intermediate; final contracts go to `test-strategy.md`
+4. `scenario-planning.md` is intermediate; final contracts go to `test-strategy.md` — both files live in `.fluxloop/scenarios/{name}/`

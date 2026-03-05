@@ -24,7 +24,7 @@ description: |
 1. `fluxloop context show` → confirm project + scenario are set up
 2. `.fluxloop/test-memory/` check:
    - Load `agent-profile.md` → stale detection (compare `git_commit` vs `git rev-parse --short HEAD`)
-   - Load `test-strategy.md` → understand test objectives and config
+   - Load `.fluxloop/scenarios/{name}/test-strategy.md` → understand test objectives and config
    - Missing files → proceed (first run); if `agent-profile.md` missing, guide to context skill
 3. Dual Write:
    - Server: `fluxloop test --scenario <name>` (results stored on server, experiment ID generated)
@@ -57,10 +57,10 @@ Run `fluxloop context show` first:
     - No → continue with existing profile
   - If `git_commit` is `no-git` → continue without warning
   - Understand agent characteristics (tools, features, dependencies)
-- Read `.fluxloop/test-memory/test-strategy.md` (if exists):
+- Read `.fluxloop/scenarios/{name}/test-strategy.md` (if exists — `{name}` from `fluxloop context show`):
   - Understand test objectives, evaluation criteria, test configuration
   - Use wrapper path info from test-strategy in Step 3 pre-check
-- If `test-strategy.md` missing: "test-strategy.md not found. You can still run a test, but running the scenario skill first provides better context."
+- If `test-strategy.md` missing: "test-strategy.md not found at `.fluxloop/scenarios/{name}/`. You can still run a test, but running the scenario skill first provides better context."
 
 ### Step 2: Bundle/Input Selection
 
@@ -122,7 +122,7 @@ This step ensures no path skips essential checks. (L-H1 fix)
    - Not configured → "Wrapper setup is needed. See the scenario skill's wrapper guide."
 2. **Turn mode selection**: "Multi-turn? (yes/no), max turns? (default: 8)"
    > 💡 **What is Multi-turn?** Simulates a conversation with multiple back-and-forth exchanges with the agent. Single-turn tests only one question-response, while Multi-turn verifies the ability to maintain context across consecutive conversations.
-   - If `test-strategy.md` has previous settings → suggest as default
+   - If `.fluxloop/scenarios/{name}/test-strategy.md` has previous settings → suggest as default
 3. **Provider selection** (multi-turn only): "Provider? (openai/anthropic)"
 
 ### Step 4: Data Sync
@@ -221,7 +221,7 @@ Test complete. Available next actions:
 ## Key Rules
 
 1. Always read `agent-profile.md` first — check stale detection before proceeding
-2. Read `test-strategy.md` (if exists) for test objectives and configuration
+2. Read `.fluxloop/scenarios/{name}/test-strategy.md` (if exists) for test objectives and configuration
 3. NEVER skip Step 3 (Pre-check) regardless of which bundle path was taken (L-H1 fix)
 4. NEVER run `fluxloop test` as part of bundle selection (E-M2 fix) — always go through Pre-check first
 5. Use `sync pull` + `test` separately — NEVER use `--pull` option

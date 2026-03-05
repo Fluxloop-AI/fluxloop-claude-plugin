@@ -1,7 +1,7 @@
 # Scenario Planning
 
 <!-- scenario_name: {scenario_name} | created: {date} | status: in-progress -->
-<!-- filename: scenario-planning-{scenario-name}.md -->
+<!-- filename: scenario-planning.md | location: .fluxloop/scenarios/{scenario-name}/ -->
 
 ## Extracted Items
 
@@ -23,7 +23,7 @@
 ## Contracts
 
 <!-- Final contracts are recorded here after rule extraction. -->
-<!-- These contracts will be transferred to test-strategy.md in Step 8. -->
+<!-- These contracts will be transferred to test-strategy.md in the same scenario folder. -->
 
 ### 🔴 MUST
 
