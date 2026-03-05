@@ -77,9 +77,9 @@ Why bad: Mechanical chatbot tone. Turns a natural conversation into a formal men
 
 Now preparing the elements needed to refine this scenario.
 
-🟢 Scenario Topic — just decided above
-🔴 Scenario Analysis — identify and define the key elements
-🔴 Test Rules — decide how the agent should behave
+✅ Scenario Topic — just decided above
+❌ Scenario Analysis — identify and define the key elements
+❌ Test Rules — decide how the agent should behave
 ```
 
 Note: Inline descriptions appear only in Step 2 (first exposure). All subsequent roadmap displays show labels only.
@@ -87,8 +87,8 @@ Note: Inline descriptions appear only in Step 2 (first exposure). All subsequent
 After the template above, use `AskUserQuestion` for mode selection with two options: "Interactive (default)" and "Automatic".
 
 Notes:
-- Status colors: 🟢 complete / 🟡 in progress / 🔴 pending
-- 🟡 itself indicates "current step" — no "← current" or "← starting here" markers needed
+- Status icons: ✅ complete / ⏳ in progress / ❌ pending
+- ⏳ itself indicates "current step" — no "← current" or "← starting here" markers needed
 - Mode selection uses AskUserQuestion tool, NOT inline text
 
 ---
@@ -100,15 +100,15 @@ Shown at the beginning of Step 4, after mode selection.
 ### Good Example ✅
 
 ```
-🟢 Scenario Topic
-🟡 Scenario Analysis
-🔴 Test Rules
+✅ Scenario Topic
+⏳ Scenario Analysis
+❌ Test Rules
 
 ---
 
-Here are the items to define for this scenario:
+Here's what I found analyzing this scenario:
 
-Define #1. ...
+✔️ ...
 ```
 
 ---
@@ -122,9 +122,9 @@ Shown when Step 5 (Exploration) completes and Step 6 (Decision Integration) begi
 ```
 All items have been defined. Now moving on to test rules.
 
-🟢 Scenario Topic
-🟢 Scenario Analysis
-🟡 Test Rules
+✅ Scenario Topic
+✅ Scenario Analysis
+⏳ Test Rules
 
 ---
 
@@ -136,38 +136,49 @@ Now let's turn the decisions into test rules.
 
 ## 2. Scenario Breakdown (Step 4)
 
-Step 4 presents a compact overview — one line per topic. Detailed exploration happens in Step 5.
+Step 4 shows the full analysis organized by topic: ✔️ confirmed items with rationale, ❓ open items with what needs deciding, and a 💡 Recommend section with suggested answers. The user can accept recommendations to proceed quickly or opt into deeper discussion.
 
 ### Good Example ✅
+
+```
+Here's what I found analyzing this scenario:
+
+**Data Access**
+  ✔️ the agent reads CSV files via pandas to check available columns
+
+**Column Handling**
+  ✔️ a column existence check already exists before analysis
+  ❓ Similar Column Suggestion — suggest "did you mean X?" when a similar column name exists?
+  ❓ Partial Request — when some columns exist and others don't, reject all or process what's available?
+
+**Response**
+  ✔️ the agent returns results/errors in JSON format
+  ❓ Rejection Timing — reject immediately on request, or fail after attempting analysis?
+  ❓ Error Tone — tone of the rejection message (technical error vs. friendly guidance)
+
+💡 Recommend
+  · Rejection Timing → reject immediately (avoid unnecessary computation)
+  · Similar Column Suggestion → suggest similar columns (handle user typos)
+  · Partial Request → process available + flag missing (flexible response)
+  · Error Tone → friendly guidance (fits data analysis context)
+```
+
+Then use `AskUserQuestion` with three options:
+- "Accept recommendations (Recommended)"
+- "Discuss specific items"
+- "Discuss all items"
+
+### Bad Example ❌ (labels only, no analysis)
 
 ```
 Here are the items to define for this scenario:
 
 Define #1. "Non-existent table/column": what counts as non-existent — made-up names, typos, or columns from other tables?
 Define #2. "How to handle": what the agent should do when it encounters a non-existent reference
-💡 Define #3. Mixed requests: how to handle queries that mix existing and non-existing columns
+Define #3. Mixed requests: how to handle queries that mix existing and non-existing columns
 ```
 
-Then use `AskUserQuestion` to confirm:
-- "Proceed as-is (Recommended)"
-- "I need changes"
-
-### Bad Example ❌ (full detail dump)
-
-```
-Define #1. "Non-existent table/column"
-
-  ✅ Scope is based on the current data schema
-     > From the agent-profile, the agent accesses orders, customers,
-     > products. Any table/column name outside this schema counts as
-     > "non-existent."
-
-  ❓ What kinds of "non-existent" should we cover?
-     > Completely made-up name / typo / column from a different
-     > table — how far should we go?
-```
-
-Why bad: Front-loads all ✅/❓ details that belong in Step 5. The user gets overwhelmed before exploration even starts.
+Why bad: Shows only topic labels without analysis results. User can't see what's confirmed vs. what needs deciding, and has no recommended starting point.
 
 ### Bad Example ❌ (status-first grouping)
 
@@ -198,36 +209,90 @@ Why bad: Lists technical facts gathered from the codebase instead of analyzing a
 
 ---
 
+## 3. Step 5 Selective Entry
+
+Step 5 is opt-in. When the user selects "Discuss specific items" in Step 4, only the chosen ❓ items are explored. Non-selected items retain their Recommend values and appear as `✓ (recommend)` in the progress tracker.
+
+### Good Example ✅ (selective entry — 2 of 4 items selected)
+
+```
+✅ Scenario Topic
+⏳ Scenario Analysis
+   ✓ Rejection Timing (recommend)
+   ▸ Similar Column Suggestion (1/2)
+   · Partial Request
+   ✓ Error Tone (recommend)
+❌ Test Rules
+```
+
+The `(recommend)` marker tells the user which items were pre-filled from Step 4's recommendations vs. which were discussed.
+
+### Good Example ✅ (all items selected)
+
+```
+✅ Scenario Topic
+⏳ Scenario Analysis
+   ✓ Rejection Timing
+   ▸ Similar Column Suggestion (2/4)
+   · Partial Request
+   · Error Tone
+❌ Test Rules
+```
+
+When all items are selected, no `(recommend)` markers appear — all items go through full exploration.
+
+### Bad Example ❌ (recommend items shown as pending)
+
+```
+✅ Scenario Topic
+⏳ Scenario Analysis
+   · Rejection Timing
+   ▸ Similar Column Suggestion (1/4)
+   · Partial Request
+   · Error Tone
+❌ Test Rules
+```
+
+Why bad: Non-selected items appear as `·` (pending), making it look like they still need work. Items that already have accepted Recommend values should show `✓ (recommend)`.
+
+---
+
 ## 4. Progress Tracker (Step 5)
 
-Use the 3-color roadmap with progress count embedded in the 🟡 line. This replaces the previous per-item list format.
+Show the roadmap with per-item detail nested under the ⏳ step. Sub-item markers use a lighter visual weight than the top-level icons to maintain hierarchy.
 
 ### Good Example ✅
 
 ```
-🟢 Scenario Topic
-🟡 Scenario Analysis (3/5) in progress...
-🔴 Test Rules
+✅ Scenario Topic
+⏳ Scenario Analysis
+   ✓ Define #1. Non-existent scope
+   ✓ Define #2. Handling method
+   ▸ Define #3. Mixed requests (3/5)
+   · Define #4. Typo detection
+   · Define #5. Error message level
+❌ Test Rules
 ```
 
 Rules:
-- The (N/M) count shows current/total items within the current step (starts at 1, not 0)
-- "in progress..." suffix on the 🟡 line indicates active work
-- No per-item breakdown — the current question is presented below the roadmap naturally
+- Sub-item markers: `✓` done / `✓ (recommend)` pre-filled from accepted recommendation / `▸` current / `·` pending — lighter than top-level ✅⏳❌ to show hierarchy
+- The `(N/M)` count on `▸` reflects only the items being discussed (not recommend-accepted items). Starts at 1, not 0.
 - The roadmap MUST appear at the start of every turn during Step 5
 
-### Bad Example ❌ (per-item list)
+### Bad Example ❌ (heavy emoji per sub-item)
 
 ```
-📋 Progress (3/5)
-  🔵 Meaning of 'non-existent column'
-  🔵 Scope of 'appropriate rejection'
-  💬 Handling mixed requests  ← current
-  ⏳ Typo / similar column response
-  ⏳ Error message detail level
+✅ Scenario Topic
+⏳ Scenario Analysis
+   ✅ Define #1. Non-existent scope
+   ✅ Define #2. Handling method
+   ⏳ Define #3. Mixed requests (3/5)
+   ❌ Define #4. Typo detection
+   ❌ Define #5. Error message level
+❌ Test Rules
 ```
 
-Why bad: Per-item list adds cognitive load every turn. The user already knows what's being discussed from the question itself. The roadmap should show position in the overall workflow, not repeat item details.
+Why bad: Same emoji weight at both levels — no visual hierarchy. Sub-items compete with top-level roadmap for attention.
 
 ---
 

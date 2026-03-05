@@ -11,9 +11,16 @@ description: |
 
 **Flow**: Profile check → Scenario init → Proposal → Analysis → Exploration → Integration → Rules → Save
 
+## Lazy-Read Rule
+
+> **CRITICAL**: Do NOT pre-read all reference files at skill load time.
+> - `skills/_shared/` files: read once at the START of Step 1 (sequentially, not in parallel).
+> - `references/` files: read ONLY when you reach the Step that references them.
+> - Never batch-read all files into a single Explore agent call.
+
 ## Output Format
 
-> Read skills/_shared/OUTPUT_FORMAT.md
+📎 `skills/_shared/OUTPUT_FORMAT.md` — read at Step 1 start
 
 ## Context Protocol
 
@@ -21,12 +28,12 @@ description: |
 2. Load `agent-profile.md` (stale detection) + `learnings.md` (if exists) from `.fluxloop/test-memory/`
 3. Dual Write: server (`fluxloop scenarios create/refine`) + local (`test-strategy.md`)
 
-> Stale detection: read skills/_shared/CONTEXT_PROTOCOL.md | Collection: read skills/_shared/CONTEXT_COLLECTION.md
+📎 Stale detection: `skills/_shared/CONTEXT_PROTOCOL.md` | Collection: `skills/_shared/CONTEXT_COLLECTION.md` — read at Step 1 start
 
 ## Prerequisite
 
 - Project + agent-profile.md exists → proceed
-- Missing → read skills/_shared/PREREQUISITE_RESOLUTION.md → inline setup/context → return to Step 1
+- Missing → follow `skills/_shared/PREREQUISITE_RESOLUTION.md` (read at Step 1 start) → inline setup/context → return to Step 1
 
 ## Workflow
 
@@ -44,6 +51,12 @@ description: |
 - Learnings from previous sessions (`learnings.md`) are accumulated team knowledge. Always incorporate them — they prevent re-asking questions the user already answered.
 
 **Procedure**:
+- **Shared references (one-time load)**: read the following files sequentially using the Read tool. Do this ONCE here — do not re-read in later Steps.
+  1. `skills/_shared/OUTPUT_FORMAT.md`
+  2. `skills/_shared/CONTEXT_PROTOCOL.md`
+  3. `skills/_shared/CONTEXT_COLLECTION.md`
+  4. `skills/_shared/PREREQUISITE_RESOLUTION.md`
+  5. `skills/_shared/QUICK_REFERENCE.md`
 - Read `agent-profile.md`: extract `git_commit`, compare with `git rev-parse --short HEAD`
   - If different → ask if user wants to update the profile
   - If `no-git` → continue without warning
@@ -68,17 +81,17 @@ description: |
 
 Now preparing the elements needed to refine this scenario.
 
-🟢 Scenario Topic — just decided above
-🔴 Scenario Analysis — identify and define the key elements
-🔴 Test Rules — decide how the agent should behave
+✅ Scenario Topic — just decided above
+❌ Scenario Analysis — identify and define the key elements
+❌ Test Rules — decide how the agent should behave
 ```
 
 Note: The inline descriptions are only shown here (Step 2, first exposure). In all subsequent roadmap displays (Step 4/5/6), show labels only without descriptions.
 
 - **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
-  - If Interactive: Step 5 runs one item at a time
+  - If Interactive: Step 4 shows analysis with recommendations, user chooses to accept or discuss further
   - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
-- **Internal note**: Status colors: 🟢 complete / 🟡 in progress / 🔴 pending. "Scenario Analysis" covers Step 4 + Step 5 — mark 🟡 at Step 4, mark 🟢 when Step 5 completes. "Test Rules" covers Step 6 + Step 7 + Step 8 — mark 🟡 at Step 6, mark 🟢 when Step 8 completes.
+- **Internal note**: Status icons: ✅ complete / ⏳ in progress / ❌ pending. "Scenario Analysis" covers Step 4 + Step 5 — mark ⏳ at Step 4, mark ✅ when Step 4 completes (if recommendations accepted) or when Step 5 completes (if opted in). "Test Rules" covers Step 6 + Step 7 + Step 8 — mark ⏳ at Step 6, mark ✅ when Step 8 completes.
 
 ### Step 3: Scenario Proposal
 
@@ -93,8 +106,7 @@ Note: The inline descriptions are only shown here (Step 2, first exposure). In a
 
 **Procedure**:
 
-> Read references/output-examples.md § "Scenario Candidate Presentation"
-
+- **First**: read `references/output-examples.md` § "Scenario Candidate Presentation" for formatting guidance
 - Analyze `agent-profile.md` only (NO codebase reading) → propose 3–5 concrete scenarios
 - Format: number + 1-line title + blockquote with concrete situation
 - Reflect `learnings.md` insights if available
@@ -104,67 +116,92 @@ Note: The inline descriptions are only shown here (Step 2, first exposure). In a
 
 ### Step 4: Scenario Breakdown
 
-**Goal**: Show the user a compact overview of what needs to be defined for this scenario. The user should see the full map of "what we need to decide" at a glance — so the upcoming exploration (Step 5) feels scoped and predictable, not open-ended. Details are explored one-by-one in Step 5, not here.
+**Goal**: Show the user the full analysis of this scenario — what's already confirmed and what needs deciding — with recommended answers for open items. The user should see the complete picture at a glance and be able to accept recommendations quickly or opt into deeper discussion.
 
 **Principles**:
 - **Sentence-first, not code-first.** Identify ambiguities from the scenario sentence itself FIRST. Only look at agent-profile or code when resolving a specific ambiguity that requires it — and even then, target only the relevant files/paths, not the full codebase.
-- **Overview, not deep-dive.** This step shows the list of topics to cover, each as a single line. Detailed ✅/❓ exploration happens in Step 5 — don't front-load it here.
+- **Show the full analysis, not just labels.** Each topic should tell the user what was found (✔️) or what needs deciding (❓), so they can make informed choices without a separate deep-dive step.
+- **Recommend by default.** Every ❓ item gets a recommended answer with reasoning. The fast path (accept all) should be the easiest path.
 - **Never expose internal terms** — classification names, resolution strategies, framework vocabulary stay invisible.
 
 **Procedure**:
 
-> Read references/internal-framework.md (ambiguity identification + classification — do NOT expose terms to user)
-> Read references/output-examples.md § "Scenario Breakdown"
+- **First**: read `references/internal-framework.md` (ambiguity identification + classification — do NOT expose terms to user) and `references/output-examples.md` § "Scenario Breakdown" for formatting guidance
 
 1. **Analyze (internal)**: identify ambiguities in the scenario sentence using the framework — analyze the sentence FIRST without reading any code (never expose classification names). For each topic, identify confirmed facts (✅) and open questions (❓).
 2. **Save**: write full analysis (with ✅/❓ details per topic) to `scenario-planning-{scenario-name}.md` at `.fluxloop/test-memory/`. This becomes the working document for Step 5.
-3. **Display**: show only the compact summary to the user. Output in this template format. Do NOT use tables.
+3. **Display**: show the analysis results extracted from the saved document, organized by topic. Output in this template format. Do NOT use tables.
 
 ```
-Now let's analyze the scenario and identify what needs to be defined.
-
-🟢 Scenario Topic
-🟡 Scenario Analysis
-🔴 Test Rules
+✅ Scenario Topic
+⏳ Scenario Analysis
+❌ Test Rules
 
 ---
 
-Here are the items to define for this scenario:
+Here's what I found analyzing this scenario:
 
-Define #1. {topic title}: {1-line description of what needs to be decided}
-Define #2. {topic title}: {1-line description}
-Define #3. {topic title}: {1-line description}
-💡 Define #4. {topic title}: {1-line description}
-💡 Define #5. {topic title}: {1-line description}
+**{topic name}**
+  ✔️ {confirmed fact, 1 line}
+  ❓ {what needs to be decided, 1 line}
+
+**{topic name}**
+  ✔️ {confirmed fact, 1 line}
+
+**{topic name}**
+  ❓ {what needs to be decided, 1 line}
+  ❓ {what needs to be decided, 1 line}
+
+💡 Recommend
+  · {topic} → {recommended answer} ({reason})
+  · {topic} → {recommended answer} ({reason})
+  · {topic} → {recommended answer} ({reason})
 ```
 
-- Each Define is a single line: topic title + brief description of the decision needed
-- 💡 prefix for implicitly discovered topics (not directly stated in the scenario sentence)
-- **Confirmation**: use `AskUserQuestion` tool. First option: "Proceed as-is (Recommended)". Second option: "I need changes".
+- Group by topic. Each topic has a **bold header**, with ✔️/❓ items listed underneath. A topic may contain only ✔️, only ❓, or both.
+- ✔️ items: confirmed facts (auto-filled from agent-profile or code). Show rationale in 1 line.
+- ❓ items: open questions the user needs to decide — includes both explicitly stated and implicitly discovered items.
+- 💡 Recommend section: covers every ❓ item. Each line shows the recommended answer with a brief reason.
+- **Branching**: use `AskUserQuestion` tool with three options:
+  - "Accept recommendations (Recommended)" — applies all recommend values, skips Step 5, proceeds to Step 6
+  - "Discuss specific items" — user selects which ❓ items to deep-dive in Step 5
+  - "Discuss all items" — enters Step 5 for all ❓ items (full exploration)
+- **If "Discuss specific items"**: use a follow-up `AskUserQuestion` with `multiSelect: true` listing all ❓ items, so the user picks which ones to discuss.
 
-### Step 5: Exploration Dialogue
+### Step 5: Exploration Dialogue (opt-in)
 
-**Goal**: Resolve every ambiguous item into a concrete behavioral expectation — whether through user decision or accepted defaults. By the end, no item remains undecided: each one has a specific expectation attached to it.
+**Goal**: Resolve selected ambiguous items into concrete behavioral expectations through deeper discussion. This step is only entered when the user opts in from Step 4 — it is skipped entirely if the user accepts all recommendations.
+
+**Entry condition**: entered only when the user chose "Discuss specific items" or "Discuss all items" in Step 4. If the user accepted recommendations, skip directly to Step 6.
+
+**Scope**:
+- If "Discuss specific items": only iterate through the user-selected ❓ items. Non-selected ❓ items retain their Recommend values from Step 4.
+- If "Discuss all items": iterate through all ❓ items (original full exploration flow).
 
 **Principles**:
 - Be Socratic, not transactional. Don't just present options and wait — present implications of each option so the user can make an informed choice. But don't lead toward a specific answer, and limit follow-up questions to one per item.
 - **One question at a time.** Bundling multiple items overwhelms the user and produces shallow answers. Depth on each item matters more than speed.
-- Respect user fatigue. If the user signals "enough," don't push — set sensible defaults for remaining items and move on. The goal is useful contracts, not exhaustive coverage.
+- Respect user fatigue. If the user signals "enough," don't push — apply Recommend values for remaining items and move on. The goal is useful contracts, not exhaustive coverage.
 - **Progress tracker every turn.** The user should always know where they are, how much is done, and how much is left. This prevents the "are we done yet?" feeling.
 
 **Procedure**:
 
-> Read references/output-examples.md § "Progress Tracker" and "Variant Presentation"
-
+- **First**: read `references/output-examples.md` § "Progress Tracker", "Step 5 Selective Entry", and "Variant Presentation" for formatting guidance
 - **One question at a time** — never bundle multiple items in a single turn
-- **Roadmap every turn**: show the 3-color roadmap with progress count (current/total, starting at 1) embedded in the 🟡 line:
+- **Roadmap every turn**: show the roadmap with per-item detail under the ⏳ step:
   ```
-  🟢 Scenario Topic
-  🟡 Scenario Analysis (N/M) in progress...
-  🔴 Test Rules
+  ✅ Scenario Topic
+  ⏳ Scenario Analysis
+     ✓ {topic} (recommend)
+     ✓ {topic}
+     ▸ {topic} (N/M)
+     · {topic}
+  ❌ Test Rules
   ```
-- For each item: present concrete variants (1-line title + blockquote), ask user to choose
-- **Exit**: user signals "enough" → set defaults for remaining items → proceed to Step 6
+  Sub-item markers: `✓` done / `✓ (recommend)` pre-filled from accepted recommendation / `▸` current / `·` pending. The `(N/M)` count appears on the `▸` current item.
+- For each selected item: present concrete variants (1-line title + blockquote), ask user to choose
+- **Exit**: user signals "enough" → apply Recommend values for remaining items → proceed to Step 6
+- **Completion**: when Step 5 completes (or is skipped), all ❓ items must have resolved values — either from Recommend acceptance or from user decisions. This resolved state is what Step 6 displays.
 
 ### Step 6: Decision Integration
 
@@ -177,16 +214,15 @@ Define #3. {topic title}: {1-line description}
 
 **Procedure**:
 
-> Read references/output-examples.md § "Decision Integration"
-
+- **First**: read `references/output-examples.md` § "Decision Integration" for formatting guidance
 - **Display**: output in this template format. Do NOT use tables.
 
 ```
 All items have been defined. Now moving on to test rules.
 
-🟢 Scenario Topic
-🟢 Scenario Analysis
-🟡 Test Rules
+✅ Scenario Topic
+✅ Scenario Analysis
+⏳ Test Rules
 
 ---
 
@@ -208,9 +244,7 @@ Now let's turn the decisions into test rules.
 
 **Procedure**:
 
-> Read references/internal-framework.md § "Expectation Level → Contract Type"
-> Read references/output-examples.md § "Contract Final Presentation"
-
+- **First**: read `references/internal-framework.md` § "Expectation Level → Contract Type" and `references/output-examples.md` § "Contract Final Presentation" for formatting guidance
 - **Internal**: convert decisions to contracts using expectation level mapping
 - **Output**: contracts grouped by 🔴 MUST / ⛔ MUST NOT / 🟡 SHOULD / 🟢 MAY (bullet + blockquote)
 - Each contract: title, category emoji, violation conditions
@@ -225,7 +259,7 @@ Now let's turn the decisions into test rules.
 - Overwrite `test-strategy.md` entirely. This file represents the current truth, not an append log.
 
 **Procedure**:
-- Local: save to `.fluxloop/test-memory/test-strategy.md` (use `test-memory-template/test-strategy.md` format)
+- Local: save to `.fluxloop/test-memory/test-strategy.md` (format: see `<repo-root>/test-memory-template/test-strategy.md`)
 - Server: `fluxloop scenarios create --name "..." --goal "..."`
 
 ### Step 9: Language + API Key + Wrapper
@@ -239,11 +273,11 @@ Now let's turn the decisions into test rules.
 **Procedure**:
 - **Language**: project default → allow override
 - **API Key**: `.fluxloop/.env` exists → skip; missing → `fluxloop apikeys create`
-- **Wrapper**: if needed → read references/wrapper-guide.md
+- **Wrapper**: if needed → read `references/wrapper-guide.md` at this point
 
 ## Interactive Checkpoints
 
-Required user interactions: Step 3 (select scenario) → Step 4 (batch confirm) → Step 5 (per item) → Step 6 (review decisions) → Step 7 (confirm rules). Min 3: scenario selection + exploration + rule confirmation.
+Required user interactions: Step 3 (select scenario) → Step 4 (analysis review + branch) → Step 5 (per item, if opted in) → Step 6 (review decisions) → Step 7 (confirm rules). Min 3: scenario selection + analysis review + rule confirmation.
 
 ## Error Handling
 
@@ -253,20 +287,20 @@ Required user interactions: Step 3 (select scenario) → Step 4 (batch confirm) 
 | Init in wrong directory | "Run from workspace root. Check `pwd`" |
 | `scenarios create` failure | Check network, login, project selection |
 | API key missing | `fluxloop apikeys create` or manual `.fluxloop/.env` |
-| Wrapper errors | read references/wrapper-guide.md |
+| Wrapper errors | follow `references/wrapper-guide.md` |
 | User fatigue | Set defaults for remaining items → proceed to Step 6 |
 
 ## Next Steps
 
 Scenario ready → Run tests (test skill)
 
-> CLI reference: read skills/_shared/QUICK_REFERENCE.md
+📎 CLI reference: `skills/_shared/QUICK_REFERENCE.md` (already loaded at Step 1)
 
 ## Cross-Cutting Rules
 
 These apply to every Step. The Workflow section references this explicitly.
 
 1. Scope: **agent behavior level only** — no user profiles or business context
-2. **1-line title + blockquote detail** for all bullet items presented to the user
+2. **1-line title + dash description or blockquote detail** for all bullet items presented to the user
 3. **User-friendly framing** — Frame every explanation from the user's perspective (what value they get, what they'll do next), NOT from the system's perspective (what technical operation is running). Never announce internal operations ("Starting skill…", "Checking project state…", "Loading context…"). Instead, speak naturally about the user's goal and what comes next. The user should feel they're starting a collaborative session, not watching a system boot sequence.
 4. `scenario-planning-{name}.md` is intermediate; final contracts go to `test-strategy.md`
