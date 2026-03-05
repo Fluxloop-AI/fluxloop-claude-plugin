@@ -44,3 +44,38 @@
 
 - **C{N}. {title}** [{emoji}{category}]
   > {explanation of the contract and violation conditions}
+
+## Stories
+
+### 📖 Story {N}. {title}
+
+- **Protagonist**: {role label} — {motivation}
+- **Setting**: {context/situation}
+- **Flow**: {step-by-step narrative}
+- **Covers**: C1, C3, C4
+
+<!-- Repeat "### 📖 Story {N}. {title}" block for each sub-scenario -->
+
+## Persona Specs
+
+### 🎭 Sub-scenario {N}. "{protagonist label}" casting spec
+
+**Required**:
+- {Trait}: {value} — {reason}
+- {Trait}: {value} — {reason}
+
+**Preferred**:
+- {Trait}: {value} — {reason}
+
+<!-- Repeat "### 🎭 Sub-scenario {N}." block for each sub-scenario -->
+
+## Matched Personas
+
+### Sub-scenario {N} → {preset persona name}
+
+- **Preset ID**: {server persona id}
+- **Summary**: {preset summary}
+- **Required match**: {trait} ✓, {trait} ✓
+- **Preferred match**: {trait} ✓, {trait} ✗
+
+<!-- Repeat "### Sub-scenario {N} →" block for each sub-scenario -->

@@ -26,7 +26,7 @@ description: |
 
 1. `fluxloop context show` → confirm project + scenario state
 2. Load `agent-profile.md` (stale detection) + `learnings.md` (if exists) from `.fluxloop/test-memory/`
-3. Dual Write: server (`fluxloop scenarios create/refine`) + local (`.fluxloop/scenarios/{name}/test-strategy.md`)
+3. Dual Write: server (`fluxloop scenarios create/refine`) + local (`.fluxloop/scenarios/{name}/`)
 
 📎 Stale detection: `skills/_shared/CONTEXT_PROTOCOL.md` | Collection: `skills/_shared/CONTEXT_COLLECTION.md` — read at Step 1 start
 
@@ -84,14 +84,24 @@ Now preparing the elements needed to refine this scenario.
 ✅ Scenario Topic — just decided above
 ❌ Scenario Analysis — identify and define the key elements
 ❌ Test Rules — decide how the agent should behave
+❌ Detailed Scenarios — create simulation stories covering all rules
+❌ Persona Casting — match server personas to each story
 ```
 
-Note: The inline descriptions are only shown here (Step 2, first exposure). In all subsequent roadmap displays (Step 4/5/6), show labels only without descriptions.
+Note: The inline descriptions are only shown here (Step 2, first exposure). In all subsequent roadmap displays (Step 4+), show labels only without descriptions.
 
 - **Mode selection**: after displaying the template above, use `AskUserQuestion` tool to ask how to proceed. Options: "Interactive (default)" / "Automatic"
   - If Interactive: Step 4 shows analysis with recommendations, user chooses to accept or discuss further
   - If Automatic: agent auto-fills all items based on codebase analysis, then jumps to Step 6 for user review
-- **Internal note**: Status icons: ✅ complete / ⏳ in progress / ❌ pending. "Scenario Analysis" covers Step 4 + Step 5 — mark ⏳ at Step 4, mark ✅ when Step 4 completes (if recommendations accepted) or when Step 5 completes (if opted in). "Test Rules" covers Step 6 + Step 7 — mark ⏳ at Step 6, mark ✅ when Step 7 completes.
+- **Internal note**: Status icons: ✅ complete / ⏳ in progress / ❌ pending. Phase-Step mapping:
+  | Phase | Steps | ⏳ starts | ✅ completes |
+  |-------|-------|-----------|-------------|
+  | Scenario Topic | 2-3 | Step 2 | Step 3 done |
+  | Scenario Analysis | 4-5 | Step 4 | Step 5 done (or Step 4 if recommendations accepted) |
+  | Test Rules | 6 | Step 6 | Step 6 done |
+  | Detailed Scenarios | 7 | Step 7 | Step 7 done |
+  | Persona Casting | 8-9 | Step 8 | Step 9 done |
+  Persona Casting has sub-steps displayed with the same markers as Step 5: `✓` done / `▸` current / `·` pending.
 
 ### Step 3: Scenario Proposal
 
@@ -136,6 +146,8 @@ Note: The inline descriptions are only shown here (Step 2, first exposure). In a
 ✅ Scenario Topic
 ⏳ Scenario Analysis
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 
 ---
 
@@ -197,6 +209,8 @@ Here's what I found analyzing this scenario:
      ▸ {topic} (N/M)
      · {topic}
   ❌ Test Rules
+  ❌ Detailed Scenarios
+  ❌ Persona Casting
   ```
   Sub-item markers: `✓` done / `✓ (recommend)` pre-filled from accepted recommendation / `▸` current / `·` pending. The `(N/M)` count appears on the `▸` current item.
 - For each selected item: present concrete variants (1-line title + blockquote), ask user to choose
@@ -227,6 +241,8 @@ Here's what I found analyzing this scenario:
   ✅ Scenario Topic
   ✅ Scenario Analysis
   ⏳ Test Rules
+  ❌ Detailed Scenarios
+  ❌ Persona Casting
 
   ---
 
@@ -250,16 +266,197 @@ Here's what I found analyzing this scenario:
 - Each item: 1-line decision + arrow + emoji + contract ID + title (no blockquote detail)
 - Update `.fluxloop/scenarios/{scenario-name}/scenario-planning.md` with full contracts (including violation conditions)
 
-### Step 7: Save (Dual Write)
+### Step 7: Detailed Scenario Generation
 
-**Goal**: Persist the confirmed contracts so they're immediately usable for testing. The user should feel "done" after this step — no manual copy-paste or file management needed.
+**Goal**: Create sub-scenarios (simulation stories) that collectively cover all confirmed contracts. Each sub-scenario has a protagonist whose role and motivation drive the story flow, making abstract rules into concrete, testable situations.
+
+**Principles**:
+- Sub-scenarios are concrete narratives with setting, characters, and flow — not abstract test cases.
+- Each sub-scenario must list which contracts it covers. Overlap between sub-scenarios is allowed.
+- The union of all sub-scenarios must cover every contract (coverage verification is mandatory).
+- Protagonist = role label + motivation. The protagonist determines the flow — same situation, different protagonist = different story.
+- 3-4 sub-scenarios is typical, but adjust based on contract count.
+
+**Procedure**:
+
+1. Display roadmap (Detailed Scenarios = ⏳):
+   ```
+   Test rules are confirmed. Now creating sub-scenarios for simulation.
+
+   ✅ Scenario Topic
+   ✅ Scenario Analysis
+   ✅ Test Rules
+   ⏳ Detailed Scenarios
+   ❌ Persona Casting
+   ```
+
+2. From the confirmed contracts in Step 6:
+   - Group contracts by what situation triggers them
+   - Determine a protagonist whose behavior naturally creates that situation
+   - Build the narrative flow driven by that protagonist's motivation
+
+3. Display sub-scenarios:
+   ```
+   Here are {M} sub-scenarios that cover all {N} rules:
+
+   📖 Sub-scenario 1. {title}
+     > Protagonist: {role label} — {motivation in this story}
+     > Setting: {context/situation}
+     > Flow: {what happens, driven by this protagonist's behavior}
+     > Covers: C1, C3, C4
+
+   📖 Sub-scenario 2. {title}
+     > Protagonist: {role label} — {motivation in this story}
+     > Setting: {context/situation}
+     > Flow: {what happens, driven by this protagonist's behavior}
+     > Covers: C2, C5
+
+   ...
+
+   Coverage check: ✅ All {N} rules covered by {M} sub-scenarios.
+   ```
+
+4. Save sub-scenarios to `.fluxloop/scenarios/{scenario-name}/scenario-planning.md` under the Stories section.
+
+5. Use `AskUserQuestion` with options: "Proceed (Recommended)" / "I need changes"
+   - If "I need changes": discuss adjustments inline, then re-display
+
+### Step 8: Persona Spec Definition
+
+**Goal**: Convert each sub-scenario's protagonist (role label + motivation) into casting conditions based on server preset traits. Classify each trait as Required (essential for the story flow) or Preferred (makes it more natural but not critical).
+
+**Available Traits (6)**:
+| Trait | Role | Example values |
+|-------|------|----------------|
+| Vertical | Domain context | finance, general-consumer, healthcare, ... |
+| Archetype | Core personality/behavior type | cautious_user, trust_seeker, power_user, ... |
+| Signal | Behavioral risk pattern (multiple allowed) | compliance_friction, confusion_loop, abandonment_risk, ... |
+| Tech Savvy | Technical proficiency | low / mid / high |
+| Patience | Patience / exit tendency | low / mid / high |
+| Difficulty | Test intensity | Easy / Medium / Hard |
+
+**Classification criteria**:
+- **Required**: Without this trait, the story's flow breaks. The protagonist's core behavior depends on it.
+- **Preferred**: Makes the story more natural, but the flow still works without it.
+
+**Principles**:
+- Derive traits from the protagonist's role/motivation: "Why does this person behave this way?"
+- Required traits are typically 1-3. Too many makes server matching difficult.
+- Not all 6 traits need to be filled. Omit traits irrelevant to the story (server decides).
+- Signal can have multiple values (one persona may exhibit multiple risk patterns).
+
+**Procedure**:
+
+1. Display roadmap (Persona Casting = ⏳, sub-step: Persona spec current):
+   ```
+   Sub-scenarios are set. Now defining casting conditions for each protagonist.
+
+   ✅ Scenario Topic
+   ✅ Scenario Analysis
+   ✅ Test Rules
+   ✅ Detailed Scenarios
+   ⏳ Persona Casting
+      ▸ Persona spec
+      · Casting call
+   ```
+
+2. For each sub-scenario's protagonist:
+   - Identify core behavior → Required traits (what breaks the flow if missing)
+   - Identify background/context → Preferred traits (what enhances naturalness)
+   - Check covered contracts → which Signal is the trigger condition
+
+3. Display casting specs:
+   ```
+   🎭 Sub-scenario 1. "{protagonist label}" casting spec
+
+     Required:
+       · {Trait}: {value} — {why this is essential for the story}
+       · {Trait}: {value} — {why this is essential for the story}
+
+     Preferred:
+       · {Trait}: {value} — {why this makes it more natural}
+       · {Trait}: {value} — {why this makes it more natural}
+
+   🎭 Sub-scenario 2. "{protagonist label}" casting spec
+
+     Required:
+       · {Trait}: {value} — {reason}
+
+     Preferred:
+       · {Trait}: {value} — {reason}
+       · {Trait}: {value} — {reason}
+
+   ...
+   ```
+
+4. Save persona specs to `.fluxloop/scenarios/{scenario-name}/scenario-planning.md` under the Persona Specs section.
+
+5. Use `AskUserQuestion` with options: "Proceed to casting call (Recommended)" / "I need changes"
+
+### Step 9: Casting Call (Server Persona Matching)
+
+**Goal**: Match server preset personas to the casting specs defined in Step 8. Call `fluxloop personas suggest`, evaluate returned presets against Required/Preferred conditions, and get user approval.
+
+**Matching evaluation**:
+- **All Required traits met** → ✅ Match success
+- **Required trait mismatch** → ⚠️ Show mismatch + reason. User decides accept/reject.
+- **Only Preferred trait mismatch** → ✅ Match success (note the mismatch)
+
+**Principles**:
+- Show server-returned presets side-by-side with Step 8 casting conditions.
+- Explicitly flag which Required traits don't match and why.
+- Allow re-suggestion with `exclude_ids` if matching is unsatisfactory.
+
+**Procedure**:
+
+1. Display roadmap (Persona Casting = ⏳, sub-step: Casting call current):
+   ```
+   Casting specs are ready. Now matching from server persona pool.
+
+   ✅ Scenario Topic
+   ✅ Scenario Analysis
+   ✅ Test Rules
+   ✅ Detailed Scenarios
+   ⏳ Persona Casting
+      ✓ Persona spec
+      ▸ Casting call
+   ```
+
+2. Call `fluxloop personas suggest --scenario-id <id>` (count = number of sub-scenarios)
+
+3. Compare returned presets against Step 8 casting conditions:
+   ```
+   🎭 Sub-scenario 1. "{protagonist label}"
+     → Match: **{preset name}** ({preset summary})
+     ✅ Required: {matched trait} ✓, {matched trait} ✓
+     ℹ️ Preferred: {matched} ✓, {unmatched} ✗
+
+   🎭 Sub-scenario 2. "{protagonist label}"
+     → Match: **{preset name}** ({preset summary})
+     ⚠️ Required: {matched trait} ✓, {unmatched trait} ✗ (reason)
+     ℹ️ Preferred: {matched} ✓
+
+   ...
+   ```
+
+4. Save matched personas to `.fluxloop/scenarios/{scenario-name}/scenario-planning.md` under the Matched Personas section.
+
+5. Use `AskUserQuestion` with options: "Confirm personas (Recommended)" / "Re-suggest (exclude current)" / "I'll adjust specs"
+   - "Re-suggest": add current IDs to `exclude_ids`, re-call the API
+   - "Adjust specs": return to Step 8 to modify casting conditions
+
+### Step 10: Save (Dual Write)
+
+**Goal**: Finalize the session — mark scenario-planning as complete, generate the test-strategy summary, and sync to server. The user should feel "done" after this step.
 
 **Principles**:
 - Both writes (local + server) must succeed. If one fails, inform the user clearly and offer a retry — don't silently skip.
-- Overwrite `.fluxloop/scenarios/{scenario-name}/test-strategy.md` entirely. This file represents the current truth, not an append log.
+- `scenario-planning.md` already contains full contracts from Step 6. This step updates its status to `complete` and generates the summary file.
+- Overwrite `test-strategy.md` entirely — it is a derived summary, not the source of truth for contracts.
 
 **Procedure**:
-- Local: save to `.fluxloop/scenarios/{scenario-name}/test-strategy.md` (format: see `<repo-root>/test-memory-template/test-strategy.md`)
+- Update `scenario-planning.md` status metadata from `in-progress` to `complete`
+- Generate `test-strategy.md` (format: see `<repo-root>/test-memory-template/test-strategy.md`) — contains Active Scenarios table, Test Objectives, Contract Summary (count + coverage), Evaluation Criteria, and Test Configuration. No individual contract details.
 - Server: `fluxloop scenarios create --name "..." --goal "..."`
 
 ### Step 8: Language + API Key + Wrapper
@@ -303,4 +500,4 @@ These apply to every Step. The Workflow section references this explicitly.
 1. Scope: **agent behavior level only** — no user profiles or business context
 2. **1-line title + dash description or blockquote detail** for all bullet items presented to the user
 3. **User-friendly framing** — Frame every explanation from the user's perspective (what value they get, what they'll do next), NOT from the system's perspective (what technical operation is running). Never announce internal operations ("Starting skill…", "Checking project state…", "Loading context…"). Instead, speak naturally about the user's goal and what comes next. The user should feel they're starting a collaborative session, not watching a system boot sequence.
-4. `scenario-planning.md` is intermediate; final contracts go to `test-strategy.md` — both files live in `.fluxloop/scenarios/{name}/`
+4. `scenario-planning.md` holds full contracts (source of truth); `test-strategy.md` holds session summary (objectives, contract count, config) — both live in `.fluxloop/scenarios/{name}/`

@@ -80,6 +80,8 @@ Now preparing the elements needed to refine this scenario.
 ✅ Scenario Topic — just decided above
 ❌ Scenario Analysis — identify and define the key elements
 ❌ Test Rules — decide how the agent should behave
+❌ Detailed Scenarios — create simulation stories covering all rules
+❌ Persona Casting — match server personas to each story
 ```
 
 Note: Inline descriptions appear only in Step 2 (first exposure). All subsequent roadmap displays show labels only.
@@ -103,6 +105,8 @@ Shown at the beginning of Step 4, after mode selection.
 ✅ Scenario Topic
 ⏳ Scenario Analysis
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 
 ---
 
@@ -125,6 +129,8 @@ All items have been defined. Here are the test rules.
 ✅ Scenario Topic
 ✅ Scenario Analysis
 ⏳ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 
 ---
 
@@ -222,6 +228,8 @@ Step 5 is opt-in. When the user selects "Discuss specific items" in Step 4, only
    · Partial Request
    ✓ Error Tone (recommend)
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 ```
 
 The `(recommend)` marker tells the user which items were pre-filled from Step 4's recommendations vs. which were discussed.
@@ -236,6 +244,8 @@ The `(recommend)` marker tells the user which items were pre-filled from Step 4'
    · Partial Request
    · Error Tone
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 ```
 
 When all items are selected, no `(recommend)` markers appear — all items go through full exploration.
@@ -250,6 +260,8 @@ When all items are selected, no `(recommend)` markers appear — all items go th
    · Partial Request
    · Error Tone
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 ```
 
 Why bad: Non-selected items appear as `·` (pending), making it look like they still need work. Items that already have accepted Recommend values should show `✓ (recommend)`.
@@ -271,6 +283,8 @@ Show the roadmap with per-item detail nested under the ⏳ step. Sub-item marker
    · Define #4. Typo detection
    · Define #5. Error message level
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 ```
 
 Rules:
@@ -289,6 +303,8 @@ Rules:
    ❌ Define #4. Typo detection
    ❌ Define #5. Error message level
 ❌ Test Rules
+❌ Detailed Scenarios
+❌ Persona Casting
 ```
 
 Why bad: Same emoji weight at both levels — no visual hierarchy. Sub-items compete with top-level roadmap for attention.
@@ -373,3 +389,139 @@ Do these rules look right for testing?
 ```
 
 Why bad: Groups by contract type (MUST/SHOULD) instead of topic. User loses the connection between decisions and rules. Also verbose with blockquote details.
+
+---
+
+## 7. Detailed Scenario Generation (Step 7)
+
+Step 7 creates sub-scenarios that collectively cover all confirmed contracts. Each sub-scenario has a protagonist whose behavior drives the story.
+
+### Good Example ✅
+
+```
+Test rules are confirmed. Now creating sub-scenarios for simulation.
+
+✅ Scenario Topic
+✅ Scenario Analysis
+✅ Test Rules
+⏳ Detailed Scenarios
+❌ Persona Casting
+
+---
+
+Here are 3 sub-scenarios that cover all 4 rules:
+
+📖 Sub-scenario 1. The Typo-Prone Analyst
+  > Protagonist: Junior data analyst — rushing to prepare a report before a meeting
+  > Setting: The analyst has a list of column names from memory, some misspelled
+  > Flow: Asks for "revnue" and "total_pric" — the agent must detect near-matches and suggest corrections rather than failing silently
+  > Covers: C1, C2
+
+📖 Sub-scenario 2. The Multi-Table Explorer
+  > Protagonist: Product manager — wants a cross-functional view combining orders and customer data
+  > Setting: Requests metrics that span multiple tables without specifying joins
+  > Flow: Asks "show me customer order rankings" — agent must handle the implicit join or inform about table boundaries
+  > Covers: C3, C4
+
+📖 Sub-scenario 3. The Partial Request
+  > Protagonist: Marketing lead — needs a quick snapshot but asks for a mix of valid and invalid columns
+  > Setting: Some requested columns exist, others don't
+  > Flow: Asks for "revenue, order_date, campaign_id" where campaign_id doesn't exist — agent must process what's available and flag what's missing
+  > Covers: C1, C4
+
+Coverage check: ✅ All 4 rules covered by 3 sub-scenarios.
+```
+
+Then use `AskUserQuestion` with options: "Proceed (Recommended)" / "I need changes".
+
+---
+
+## 8. Persona Spec Definition (Step 8)
+
+Step 8 converts each protagonist into casting conditions using server preset traits, classified as Required or Preferred.
+
+### Good Example ✅
+
+```
+Sub-scenarios are set. Now defining casting conditions for each protagonist.
+
+✅ Scenario Topic
+✅ Scenario Analysis
+✅ Test Rules
+✅ Detailed Scenarios
+⏳ Persona Casting
+   ▸ Persona spec
+   · Casting call
+
+---
+
+🎭 Sub-scenario 1. "Junior data analyst" casting spec
+
+  Required:
+    · Tech Savvy: low — typos are core to the story; a proficient user wouldn't make them
+    · Signal: confusion_loop — repeated failed attempts drive the test flow
+
+  Preferred:
+    · Patience: mid — stays long enough to see correction suggestions
+    · Vertical: general-consumer — not domain-specific
+
+🎭 Sub-scenario 2. "Product manager" casting spec
+
+  Required:
+    · Archetype: power_user — expects cross-table queries to "just work"
+    · Signal: compliance_friction — pushes boundaries of what the agent supports
+
+  Preferred:
+    · Tech Savvy: mid — understands data concepts but not SQL syntax
+    · Difficulty: Medium — moderate challenge level
+
+🎭 Sub-scenario 3. "Marketing lead" casting spec
+
+  Required:
+    · Patience: low — wants quick results, may abandon if too many errors
+    · Signal: abandonment_risk — partial failures might cause early exit
+
+  Preferred:
+    · Archetype: trust_seeker — needs confidence that partial results are reliable
+```
+
+Then use `AskUserQuestion` with options: "Proceed to casting call (Recommended)" / "I need changes".
+
+---
+
+## 9. Casting Call — Server Persona Matching (Step 9)
+
+Step 9 matches server preset personas against the casting specs from Step 8.
+
+### Good Example ✅
+
+```
+Casting specs are ready. Now matching from server persona pool.
+
+✅ Scenario Topic
+✅ Scenario Analysis
+✅ Test Rules
+✅ Detailed Scenarios
+⏳ Persona Casting
+   ✓ Persona spec
+   ▸ Casting call
+
+---
+
+🎭 Sub-scenario 1. "Junior data analyst"
+  → Match: **Confused Novice** (A beginner who frequently misunderstands terminology)
+  ✅ Required: Tech Savvy: low ✓, Signal: confusion_loop ✓
+  ℹ️ Preferred: Patience: mid ✓, Vertical: general-consumer ✓
+
+🎭 Sub-scenario 2. "Product manager"
+  → Match: **Demanding Executive** (Expects immediate, comprehensive answers)
+  ✅ Required: Archetype: power_user ✓, Signal: compliance_friction ✓
+  ℹ️ Preferred: Tech Savvy: mid ✓, Difficulty: Medium ✗ (preset is Hard)
+
+🎭 Sub-scenario 3. "Marketing lead"
+  → Match: **Impatient Browser** (Low tolerance for delays or repeated errors)
+  ✅ Required: Patience: low ✓, Signal: abandonment_risk ✓
+  ℹ️ Preferred: Archetype: trust_seeker ✗ (preset is cautious_user)
+```
+
+Then use `AskUserQuestion` with options: "Confirm personas (Recommended)" / "Re-suggest (exclude current)" / "I'll adjust specs".
