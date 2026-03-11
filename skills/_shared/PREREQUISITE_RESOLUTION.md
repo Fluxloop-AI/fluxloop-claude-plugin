@@ -6,7 +6,7 @@ Instead, follow the procedure below to execute prerequisite skills inline.
 ## Dependency Chain
 
 ```
-setup → context → scenario → test → evaluate
+setup → context → persona → scenario → test → evaluate
 ```
 
 ## Resolution Procedure
@@ -38,6 +38,7 @@ setup → context → scenario → test → evaluate
 | CLI installation | `fluxloop --version` → command not found | setup (installation step) |
 | Project setup | `fluxloop context show` → no project | setup (auth/project step) |
 | Agent profile | `.fluxloop/test-memory/agent-profile.md` absent | context |
+| Persona pool | `.fluxloop/test-memory/persona-pool.md` absent | persona |
 | Scenario | `fluxloop context show` → no scenario | scenario |
 | Test results | `.fluxloop/test-memory/results-log.md` absent or 0 entries | test |
 
@@ -51,5 +52,6 @@ When a prerequisite is already met and inline execution is triggered, skip the s
 | setup (project) complete | "✅ Project connected (proj_xxx) — skipping setup" |
 | context complete (up-to-date) | "✅ Agent profile is current (scanned {N} days ago) — skipping context" |
 | context complete (stale) | "⚠️ Profile is outdated (code changes detected) — update recommended (optional)" |
+| persona complete | "✅ Persona pool exists ({N} personas) — skipping persona" |
 | scenario complete | "✅ Active scenario exists ({scenario_name}) — skipping scenario" |
 | test complete | "✅ Recent test results exist (exp_xxx) — proceeding directly to evaluation" |

@@ -29,6 +29,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 |-------|-------|--------|------------------------|
 | setup | — | — | `auth login`, `projects create/select` |
 | context | — | agent-profile | `intent refine`, `data push` |
+| persona | agent-profile, learnings | persona-pool | (none — local only) |
 | scenario | agent-profile, learnings | .fluxloop/scenarios/{name}/test-strategy, .fluxloop/scenarios/{name}/scenario-planning | `scenarios create/refine`, `sync pull` |
 | test | agent-profile, .fluxloop/scenarios/{name}/test-strategy | results-log | `sync pull`, `test --scenario` |
 | evaluate | agent-profile, results-log, .fluxloop/scenarios/{name}/test-strategy | learnings, results-log | `evaluate --experiment-id` |
@@ -36,7 +37,7 @@ All skills (except setup) follow this protocol to manage `.fluxloop/test-memory/
 
 ## Stale Detection (agent-profile.md only)
 
-The scenario, test, evaluate, and prompt-compare skills check for staleness when reading `agent-profile.md`:
+The persona, scenario, test, evaluate, and prompt-compare skills check for staleness when reading `agent-profile.md`:
 
 1. Extract `git_commit` from the metadata comment at the top of the file
 2. Compare against the output of `git rev-parse --short HEAD`
@@ -49,7 +50,9 @@ The scenario, test, evaluate, and prompt-compare skills check for staleness when
 ```
 context → agent-profile.md + intent refine (server) + data push (server)
   ↓
-scenario → read agent-profile (stale? → refresh) → .fluxloop/scenarios/{name}/test-strategy.md + .fluxloop/scenarios/{name}/scenario-planning.md + scenarios create (server)
+persona → read agent-profile → persona-pool.md (local only)
+  ↓
+scenario → read agent-profile, persona-pool (optional) → .fluxloop/scenarios/{name}/test-strategy.md + .fluxloop/scenarios/{name}/scenario-planning.md + scenarios create (server)
   ↓
 test → read agent-profile, .fluxloop/scenarios/{name}/test-strategy (stale? → refresh) → results-log.md + test results (server)
   ↓
